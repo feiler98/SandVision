@@ -176,7 +176,7 @@ def gen_stdized_ml_set(path_dir_images: (str, Path), n_transform: int = 0, file_
 
 if __name__ == "__main__":
     # rgb_channel_to_binary_matrix("/Users/werne/PycharmProjects/SandVision/input_data/data/G36-6400-1600-nr16_1765067383880__mask_circle.png", "r")
-    gen_stdized_ml_set("/Users/werne/PycharmProjects/SandVision/input_data/data_test", 3)
+    gen_stdized_ml_set("/Users/werne/PycharmProjects/sand_vision_project/input_data/data_test", 3)
 
 
 
