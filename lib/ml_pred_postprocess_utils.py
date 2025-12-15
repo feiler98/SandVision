@@ -8,7 +8,10 @@ from numpy import ones,vstack
 from numpy.linalg import lstsq
 import math
 from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
+import os
+
+# project
+from data_vis_utils import visualize_pred_img
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -51,6 +54,8 @@ def create_circle(cartesian_shape: tuple, center_coordinates: tuple, xy_radius: 
 
 
 def calc_line_by_two_points(xy_point1: tuple, xy_point2: tuple) -> tuple:
+    if xy_point1[0] == xy_point2[0]:
+        xy_point1 = (xy_point1[0]+0.0001, xy_point1[1])
     x_coords, y_coords = zip(*[xy_point1, xy_point2])
     A = vstack([x_coords, ones(len(x_coords))]).T
     m, t = lstsq(A, y_coords)[0]
@@ -122,21 +127,16 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str, Path),
             "circle_line": {"m": m_circle, "t": t_circle},
             "sand_line": {"m": m_sand, "t": t_sand}}
 
-def visualize_results(path_img: (str, Path), dict_results: dict):
-    path_img = Path(path_img)
-    img_arr = np.asarray(Image.open(path_img))
-    x_sand = [dict_results["sand_coords1"][0], dict_results["sand_coords2"][0]]
-    y_sand = [dict_results["sand_coords1"][1], dict_results["sand_coords2"][1]]
-    x_chamber = [dict_results["chamber_center_coords"][0], dict_results["chamber_dot_coords"][0]]
-    y_chamber = [dict_results["chamber_center_coords"][1], dict_results["chamber_dot_coords"][1]]
-    # plotting
-    fig, ax = plt.subplots()
-    ax.imshow(img_arr)
-    ax.plot(x_sand, y_sand, color="#93ed95", linewidth=2.5, label=f"sand axis | y = {dict_results["sand_line"]["m"]}x + {dict_results["sand_line"]["t"]}")
-    ax.plot(x_chamber, y_chamber, color="#ff6054", marker="D", linewidth=2.0, label=f"chamber axis | y = {dict_results["circle_line"]["m"]}x + {dict_results["circle_line"]["t"]}")
-    ax.legend()
-    plt.title(f"Prediction | {path_img.stem}", fontsize=12, fontweight="medium")
-    plt.savefig(path_img.parent / f"{path_img.stem}__pred_result.png", bbox_inches="tight", dpi=150)
+
+def mask_result_eval(path_ml_out: (str, Path)):
+    path_ml_out = Path(path_ml_out)
+
+    # get image path
+    mask_tags = ["mask_circle_chamber", "mask_circle_dot", "mask_sand"]
+    set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
+    n_cores = os.cpu_count()
+    pass
+    # add multiprocessing with yield
 
 
 # debugging
@@ -146,6 +146,6 @@ if __name__ == "__main__":
                                          path_data/"G36-6400-1600-nr16_1765067248000__mask_circle_dot.png",
                                          path_data/"G36-6400-1600-nr16_1765067248000__mask_sand.png")
     print(dict_out)
-    visualize_results("/Users/werne/PycharmProjects/sand_vision_project/input_data/data_test__ml_ready/G36-6400-1600-nr16_1765067248000.png", dict_out)
+    visualize_pred_img("/Users/werne/PycharmProjects/sand_vision_project/input_data/data_test__ml_ready/G36-6400-1600-nr16_1765067248000.png", dict_out)
 
 
