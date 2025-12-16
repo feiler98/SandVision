@@ -8,7 +8,7 @@ import shutil
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def pillow_img_transform(dict_img: dict, out_path: (str, Path) = Path.cwd()):
+def pillow_img_transform(dict_img: dict, out_path: (str | Path) = Path.cwd()):
     """
     Random transformation in contrast, value-range, noise, blur(opt), and crop-slice of original image + 4 rotation variants.
     Designed to increase a hand curated dataset with new instances for a more stable prediction.
@@ -99,7 +99,7 @@ def pillow_img_transform(dict_img: dict, out_path: (str, Path) = Path.cwd()):
         mask_sand_c.rotate(deg, expand=True).save(out_path / f"{dict_img["mask_sand"].stem}__rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}.png")
 
 
-def rgb_channel_to_binary_matrix(path_mask: (str, Path), channel: str) -> Image:
+def rgb_channel_to_binary_matrix(path_mask: (str | Path), channel: str) -> Image:
     # select rgb-channel with mask
     rgb_tuple = ("r", "g", "b")
     if channel not in rgb_tuple:
@@ -126,7 +126,7 @@ def rgb_channel_to_binary_matrix(path_mask: (str, Path), channel: str) -> Image:
     img_mask_binary = Image.fromarray(single_channel_arr)
     return img_mask_binary
 
-def gen_stdized_ml_set(path_dir_images: (str, Path), n_transform: int = 0, file_type: str = ".png"):
+def gen_stdized_ml_set(path_dir_images: (str | Path), n_transform: int = 0, file_type: str = ".png"):
     # check pathing
     path_dir_images = Path(path_dir_images)
     if not path_dir_images.exists() or not path_dir_images.is_dir():

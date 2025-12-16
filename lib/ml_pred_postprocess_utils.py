@@ -17,7 +17,7 @@ from general_utils import mp_list_to_chunks
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def find_mask_circle_center(path_mask: (str, Path)) -> dict:
+def find_mask_circle_center(path_mask: (str | Path)) -> dict:
     path_mask = Path(path_mask)
     if not path_mask.exists() and not path_mask.is_file():
         raise ValueError(f"Given path '{path_mask}' was expected to be a file!")
@@ -36,7 +36,6 @@ def find_mask_circle_center(path_mask: (str, Path)) -> dict:
     coordinate_y = col_signal_list.index(max_col) + half_count_col_max
     rad_x = int(len([x for x in row_signal_list if x > 0]) / 2)
     rad_y = int(len([x for x in col_signal_list if x > 0]) / 2)
-
     return {"cartesian_shape": array_mask.shape,
             "center_coordinates": (coordinate_x, coordinate_y),
             "xy_radius": (rad_x, rad_y)}
@@ -65,11 +64,11 @@ def calc_line_by_two_points(xy_point1: tuple, xy_point2: tuple) -> tuple:
     return round(m, 2), round(t, 2)
 
 
-def calc_two_line_angle(m_line1: (int, float), m_line2: (int, float)) -> float:
+def calc_two_line_angle(m_line1: (int | float), m_line2: (int | float)) -> float:
     return round(math.atan(abs((m_line1 - m_line2) / (1 + m_line1 * m_line2))), 2)
 
 
-def sand_mask_get_outline_mtx(path_mask: (str, Path)) -> np.array:
+def sand_mask_get_outline_mtx(path_mask: (str | Path)) -> np.array:
     img_sand_mask = Image.open(path_mask)
     img_outline = img_sand_mask.filter(ImageFilter.FIND_EDGES)
     arr_outline = np.asarray(img_outline)
@@ -91,9 +90,9 @@ def lin_reg_sand(arr: np.array) -> tuple:
     return point1, point2
 
 
-def get_line_params_from_mask_pred(path_mask_chamber: (str, Path),
-                                   path_mask_dot: (str, Path),
-                                   path_mask_sand: (str, Path)) -> dict:
+def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
+                                   path_mask_dot: (str | Path),
+                                   path_mask_sand: (str | Path)) -> dict:
     # pathing
     path_mask_chamber = Path(path_mask_chamber)
     path_mask_dot = Path(path_mask_dot)
@@ -130,7 +129,7 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str, Path),
             "sand_line": {"m": m_sand, "t": t_sand}}
 
 
-def mask_result_eval(path_ml_out: (str, Path)):
+def mask_result_eval(path_ml_out: (str | Path)):
     path_ml_out = Path(path_ml_out)
 
     # get image path
@@ -142,7 +141,7 @@ def mask_result_eval(path_ml_out: (str, Path)):
 
 
 # func for mask_result_eval multiprocessing element
-def mp_data_generation(path_out: (str, Path), list_img_tags: list):
+def mp_data_generation(path_out: (str | Path), list_img_tags: list) -> dict:
     pass
 
 

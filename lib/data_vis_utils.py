@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def visualize_pred_img(path_img: (str, Path), dict_results: dict):
+def visualize_pred_img(path_img: (str | Path), dict_results: dict):
     path_img = Path(path_img)
     img_arr = np.asarray(Image.open(path_img))
     x_sand = [dict_results["sand_coords1"][0], dict_results["sand_coords2"][0]]
