@@ -9,9 +9,11 @@ from numpy.linalg import lstsq
 import math
 from sklearn.linear_model import LinearRegression
 import os
+from multiprocessing import Pool
 
 # project
 from data_vis_utils import visualize_pred_img
+from general_utils import mp_list_to_chunks
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -135,8 +137,13 @@ def mask_result_eval(path_ml_out: (str, Path)):
     mask_tags = ["mask_circle_chamber", "mask_circle_dot", "mask_sand"]
     set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
     n_cores = os.cpu_count()
+    with Pool(n_cores) as pool:
+        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in mp_list_to_chunks(set_img_tags, n_cores)])
+
+
+# func for mask_result_eval multiprocessing element
+def mp_data_generation(path_out: (str, Path), list_img_tags: list):
     pass
-    # add multiprocessing with yield
 
 
 # debugging
