@@ -149,6 +149,6 @@ def video_to_image_seq(video_path: (str, Path),
 
 # testing
 if __name__ == "__main__":
-    video_to_image_seq('/Volumes/FR external SSD/ruan_ml_data/G36-1600-6400_ursprünglich 5 min.avi', "first_test")
+    pass
 
 
