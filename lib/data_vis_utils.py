@@ -17,8 +17,8 @@ def visualize_pred_img(path_img: (str | Path), dict_results: dict):
     # plotting
     fig, ax = plt.subplots()
     ax.imshow(img_arr)
-    ax.plot(x_sand, y_sand, color="#93ed95", linewidth=2.5, label=f"sand axis | y = {dict_results["sand_line"]["m"]}x + {dict_results["sand_line"]["t"]}")
-    ax.plot(x_chamber, y_chamber, color="#ff6054", marker="D", linewidth=2.0, label=f"chamber axis | y = {dict_results["circle_line"]["m"]}x + {dict_results["circle_line"]["t"]}")
+    ax.plot(x_sand, y_sand, color="#93ed95", linewidth=2.5, label=f"sand axis | y = {dict_results["sand_line__m"]}x + {dict_results["sand_line__t"]}")
+    ax.plot(x_chamber, y_chamber, color="#ff6054", marker="D", linewidth=2.0, label=f"chamber axis | y = {dict_results["circle_line__m"]}x + {dict_results["circle_line__t"]}")
     ax.legend()
     plt.title(f"Prediction | {path_img.stem}", fontsize=12, fontweight="medium")
     plt.savefig(path_img.parent / f"{path_img.stem}__pred_result.png", bbox_inches="tight", dpi=150)

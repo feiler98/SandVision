@@ -1,6 +1,8 @@
 # imports
 # ----------------------------------------------------------------------------------------------------------------------
 from pathlib import Path
+
+import pandas as pd
 from PIL import Image, ImageFilter
 import numpy as np
 from skimage.draw import ellipse
@@ -10,6 +12,8 @@ import math
 from sklearn.linear_model import LinearRegression
 import os
 from multiprocessing import Pool
+from warnings import filterwarnings
+filterwarnings("ignore", category=DeprecationWarning)
 
 # project
 from data_vis_utils import visualize_pred_img
@@ -60,7 +64,7 @@ def calc_line_by_two_points(xy_point1: tuple, xy_point2: tuple) -> tuple:
     x_coords, y_coords = zip(*[xy_point1, xy_point2])
     A = vstack([x_coords, ones(len(x_coords))]).T
     m, t = lstsq(A, y_coords)[0]
-    print(f"y = {m}x + {t}")
+    print(f"Linear equation | y = {m}x + {t}")
     return round(m, 2), round(t, 2)
 
 
@@ -123,26 +127,48 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
 
     return {"chamber_center_coords":dict_center_chamber["center_coordinates"],
             "chamber_dot_coords": dict_center_dot["center_coordinates"],
-            "sand_coords1": point1_sand,
-            "sand_coords2": point2_sand,
-            "circle_line": {"m": m_circle, "t": t_circle},
-            "sand_line": {"m": m_sand, "t": t_sand}}
+            "sand_coords1": (int(x_sand1), int(y_sand1)),
+            "sand_coords2": (int(x_sand2), int(y_sand2)),
+            "circle_line__m": float(m_circle),
+            "circle_line__t": float(t_circle),
+            "sand_line__m": float(m_sand),
+            "sand_line__t": float(t_sand)}
 
 
 def mask_result_eval(path_ml_out: (str | Path)):
     path_ml_out = Path(path_ml_out)
 
     # get image path
-    mask_tags = ["mask_circle_chamber", "mask_circle_dot", "mask_sand"]
     set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
     n_cores = os.cpu_count()
     with Pool(n_cores) as pool:
         result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in mp_list_to_chunks(set_img_tags, n_cores)])
+    dict_unite = {}
+    for result_dict in result_list:
+        dict_unite.update(result_dict)
+    df_result = pd.DataFrame.from_dict(dict_unite).T
+    df_result.to_csv(path_ml_out / f"{path_ml_out.name}__eval.csv")
 
 
 # func for mask_result_eval multiprocessing element
-def mp_data_generation(path_out: (str | Path), list_img_tags: list) -> dict:
-    pass
+def mp_data_generation(path_out: (str | Path), list_img_tags: list, file_type=".png") -> dict:
+    mask_tags = ["mask_circle_chamber", "mask_circle_dot", "mask_sand", "img"]
+    dict_results_collect = {}
+    for unique_file in list_img_tags:
+        dict_path_file_group = {(p.stem.split("__")[1] if len(p.stem.split("__")) > 1 else "img"): p for p in path_out.rglob(f"*{unique_file}*{file_type}")}
+        if not mask_tags.sort() == list(dict_path_file_group.keys()).sort():
+            print(f"Image sequence '{unique_file}' does not have all necessary image-elements. --> skip")
+            continue
+        header_string = f"Evaluation of '{unique_file}'"
+        print(f"""
+{header_string}""")
+        print("-"*len(header_string))
+        dict_pred = get_line_params_from_mask_pred(dict_path_file_group["mask_circle_chamber"],
+                                                   dict_path_file_group["mask_circle_dot"],
+                                                   dict_path_file_group["mask_sand"])
+        visualize_pred_img(dict_path_file_group["img"], dict_pred)
+        dict_results_collect.update({unique_file:dict_pred})
+    return dict_pred
 
 
 # debugging
