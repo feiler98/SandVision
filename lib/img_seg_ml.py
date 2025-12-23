@@ -12,7 +12,6 @@ from pathlib import Path
 
 # Image Segmentation Algorithm
 ########################################################################################################################
-
 class DoubleConv(nn.Module):
     """
     Pipeline sub-element
@@ -130,7 +129,6 @@ def test_uneven_img_size():
 
 # Dataloader
 ########################################################################################################################
-
 class DataLoader(Dataset):
     def __init__(self,
                  img_dir: (Path | str), mask_tag: str, data_suffix: str = ".png"):
