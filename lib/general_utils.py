@@ -35,13 +35,13 @@ def mp_list_to_chunks(input_list: list, n_chunks: int) -> list:
 path_checkpoint = Path(__file__).parent.parent / "ml_model"
 
 
-def save_checkpoint(state: dict,
+def save_checkpoint(state: torch,
                     filename: str = "model.pth.tar"):
     print("=> Saving checkpoint")
     torch.save(state, path_checkpoint/filename)
 
 
-def load_checkpoint(checkpoint: dict,
+def load_checkpoint(checkpoint: (torch.load | dict),
                     model: torch.nn.Module):
     print("=> Loading checkpoint")
     model.load_state_dict(checkpoint["state_dict"])
