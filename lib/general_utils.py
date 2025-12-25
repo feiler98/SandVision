@@ -1,5 +1,10 @@
 # imports
 # ----------------------------------------------------------------------------------------------------------------------
+import torch
+import torchvision
+from pathlib import Path
+from img_seg_ml import SandDataLoader
+from torch.utils.data import DataLoader
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -21,3 +26,109 @@ def mp_list_to_chunks(input_list: list, n_chunks: int) -> list:
     step_size = size_requirement if size_requirement < n_chunks else n_chunks
     for i in range(0, len(input_list), step_size):
         yield input_list[i:i+step_size]
+
+
+# utility for handling model training
+# ----------------------------------------------------------------------------------------------------------------------
+
+# saving path for model
+path_checkpoint = Path(__file__).parent.parent / "ml_model"
+
+
+def save_checkpoint(state, filename="my_checkpoint.pth.tar"):
+    print("=> Saving checkpoint")
+    torch.save(state, path_checkpoint/filename)
+
+
+def load_checkpoint(checkpoint, model):
+    print("=> Loading checkpoint")
+    model.load_state_dict(checkpoint["state_dict"])
+
+
+def get_loaders(data_dir: (str | Path),
+                mask_tag: str,
+                train_tag_list: list,
+                val_tag_list: list,
+                batch_size: int,
+                n_jobs: int = 4,
+                pin_memory: bool = True):
+    """
+    Shuffel true for the training-set, not the validation-set --> no effect on performance of the model.
+    """
+
+    train_ds = SandDataLoader(
+        img_dir=data_dir,
+        mask_tag=mask_tag,
+        img_tags=train_tag_list)
+
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=batch_size,
+        num_workers=n_jobs,
+        pin_memory=pin_memory,
+        shuffle=True)
+
+    val_ds = SandDataLoader(
+        img_dir=data_dir,
+        mask_tag=mask_tag,
+        img_tags=val_tag_list)
+
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=batch_size,
+        num_workers=n_jobs,
+        pin_memory=pin_memory,
+        shuffle=False)
+
+    return train_loader, val_loader, val_tag_list
+
+
+def check_accuracy(loader, model, device="cuda"):
+    # variables for evaluation
+    num_correct_pixel = 0
+    num_pixels = 0
+    dice_score = 0
+
+    model.eval()
+    with torch.no_grad():
+        for x, y in loader:
+            x = x.to(device)
+            y = y.to(device).unsqueeze(1)
+            preds = torch.sigmoid(model(x))
+            preds = (preds > 0.5).float()
+            num_correct_pixel += (preds == y).sum()
+            num_pixels += torch.numel(preds)
+            dice_score += (2 * (preds * y).sum()) / ((preds + y).sum() + 1e-8)
+
+    # final metrics
+    accuracy = round(num_correct_pixel/num_pixels*100, 2)
+    avg_dice_score = dice_score/len(loader)
+
+    # evaluation output
+    print(f"Got {num_correct_pixel}/{num_pixels} with acc {accuracy}")
+    print(f"Dice score: {avg_dice_score}")
+    model.train()
+    return dict(accuracy=accuracy,
+                avg_dice_score=avg_dice_score,
+                num_correct_pixel=num_correct_pixel,
+                num_pixels=num_pixels)
+
+
+def save_predictions_as_imgs(loader: tuple,
+                             loader_tag_list: list,
+                             mask_tag: str,
+                             model: torch.nn.Module,
+                             path_out: (str | Path),
+                             device: str = "cuda"):
+    path_out = Path(path_out)
+    if not path_out.exists():
+        path_out.mkdir(exist_ok=True, parents=True)
+    model.eval()
+    for tag, (x, y) in zip(loader, loader_tag_list):
+        x = x.to(device=device)
+        with torch.no_grad():
+            preds = torch.sigmoid(model(x))
+            preds = (preds > 0.5).float()
+        torchvision.utils.save_image(preds, path_out / f"{tag}{mask_tag}.png")
+    model.train()
+

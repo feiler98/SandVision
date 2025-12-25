@@ -12,6 +12,7 @@ from pathlib import Path
 
 # Image Segmentation Algorithm
 ########################################################################################################################
+
 class DoubleConv(nn.Module):
     """
     Pipeline sub-element
@@ -48,6 +49,7 @@ class VisTransformer(nn.Module):
 
     # the sequential horizontal compression / decompression of the feature space of the image
     feature_tuple = (64, 128, 256, 512)
+
     def __init__(self,
                  in_channels=3,
                  out_channels=1,
@@ -77,7 +79,6 @@ class VisTransformer(nn.Module):
         #################################################
         self.bottom_lateral = DoubleConv(features[-1], features[-1]*2)
         self.final_conv = nn.Conv2d(features[0], out_channels, kernel_size=1)
-
 
     # function forwarding the encoder/decoder pipeline
     def forward(self, x):
@@ -129,21 +130,24 @@ def test_uneven_img_size():
 
 # Dataloader
 ########################################################################################################################
-class DataLoader(Dataset):
+class SandDataLoader(Dataset):
     def __init__(self,
-                 img_dir: (Path | str), mask_tag: str, data_suffix: str = ".png"):
+                 img_dir: (Path | str),
+                 mask_tag: str,
+                 data_suffix: str = ".png",
+                 img_tags: list = None):
         self.data_suffix = data_suffix
         self.img_dir = Path(img_dir)
         self.mask_tag = mask_tag
-        self.image_tags = list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
-        self.img_path_dict = {tag:img_dir/f"{tag}{data_suffix}" for tag in self.image_tags}
+        self.img_tags = img_tags if img_tags is not None else (set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
+        self.img_path_dict = {tag:img_dir/f"{tag}{data_suffix}" for tag in self.img_tags}
         self.mask_path_dict = {p.stem.split("__")[0]: p for p in Path(img_dir).rglob(f"*{mask_tag}{data_suffix}")}
 
     def __len__(self):
-        return len(self.image_tags)
+        return len(self.img_tags)
 
     def available_keys(self):
-        return self.image_tags
+        return self.img_tags
 
     def __getitem__(self, dict_key):
         if dict_key not in self.mask_path_dict.keys():
