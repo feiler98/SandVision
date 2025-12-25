@@ -35,12 +35,14 @@ def mp_list_to_chunks(input_list: list, n_chunks: int) -> list:
 path_checkpoint = Path(__file__).parent.parent / "ml_model"
 
 
-def save_checkpoint(state, filename="my_checkpoint.pth.tar"):
+def save_checkpoint(state: dict,
+                    filename: str = "model.pth.tar"):
     print("=> Saving checkpoint")
     torch.save(state, path_checkpoint/filename)
 
 
-def load_checkpoint(checkpoint, model):
+def load_checkpoint(checkpoint: dict,
+                    model: torch.nn.Module):
     print("=> Loading checkpoint")
     model.load_state_dict(checkpoint["state_dict"])
 
@@ -83,7 +85,10 @@ def get_loaders(data_dir: (str | Path),
     return train_loader, val_loader, val_tag_list
 
 
-def check_accuracy(loader, model, device="cuda"):
+def check_accuracy(loader: tuple,
+                   model: torch.nn.Module,
+                   device: str = "cuda"):
+
     # variables for evaluation
     num_correct_pixel = 0
     num_pixels = 0
@@ -120,6 +125,7 @@ def save_predictions_as_imgs(loader: tuple,
                              model: torch.nn.Module,
                              path_out: (str | Path),
                              device: str = "cuda"):
+
     path_out = Path(path_out)
     if not path_out.exists():
         path_out.mkdir(exist_ok=True, parents=True)
@@ -131,4 +137,3 @@ def save_predictions_as_imgs(loader: tuple,
             preds = (preds > 0.5).float()
         torchvision.utils.save_image(preds, path_out / f"{tag}{mask_tag}.png")
     model.train()
-
