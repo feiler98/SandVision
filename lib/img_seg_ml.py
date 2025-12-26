@@ -7,6 +7,8 @@ import torchvision.transforms.functional as tf
 from PIL import Image
 import numpy as np
 from pathlib import Path
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -120,8 +122,9 @@ class VisTransformer(nn.Module):
         return self.final_conv(x)
 
 
-# test
-def test_uneven_img_size():
+# test VisTransformer
+# -------------------
+def __test_uneven_img_size():
     x = torch.randn((3, 1, 161, 161))
     model = VisTransformer(in_channels=1, out_channels=1)
     preds = model(x)
@@ -135,13 +138,15 @@ class SandDataLoader(Dataset):
                  img_dir: (Path | str),
                  mask_tag: str,
                  data_suffix: str = ".png",
-                 img_tags: list = None):
+                 img_tags: list = None,
+                 transform=None):
         self.data_suffix = data_suffix
         self.img_dir = Path(img_dir)
         self.mask_tag = mask_tag
-        self.img_tags = img_tags if img_tags is not None else (set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
-        self.img_path_dict = {tag:img_dir/f"{tag}{data_suffix}" for tag in self.img_tags}
-        self.mask_path_dict = {p.stem.split("__")[0]: p for p in Path(img_dir).rglob(f"*{mask_tag}{data_suffix}")}
+        self.img_tags = img_tags if img_tags is not None else list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
+        self.img_path_dict = {tag: img_dir/f"{tag}{data_suffix}" for tag in img_tags}
+        self.mask_path_dict = {tag: img_dir/f"{tag.split("_mut_")[0]}{mask_tag}{data_suffix}" for tag in img_tags}
+        self.transform = transform
 
     def __len__(self):
         return len(self.img_tags)
@@ -149,19 +154,24 @@ class SandDataLoader(Dataset):
     def available_keys(self):
         return self.img_tags
 
-    def __getitem__(self, dict_key):
-        if dict_key not in self.mask_path_dict.keys():
-            print(f"For key '{dict_key}' is the corresponding mask not available --> skip")
-        else:
-            img = np.array(Image.open(self.img_path_dict[dict_key]).convert("RGB"))  # 3 dim colorspace as tensor, not 4
-            mask = np.array(Image.open(self.mask_path_dict[dict_key]).convert("L"), dtype=np.float32)
-            mask[mask == 255.0] = 1.0  # binary normalized mask
-            return img, mask
+    def __getitem__(self, idx):
+        # torch DataLoader uses .next() --> handle numbers
+        dict_key = self.img_tags[idx]
+        img = np.array(Image.open(self.img_path_dict[dict_key]).convert("RGB"))  # 3 dim colorspace as tensor, not 4
+        mask = np.array(Image.open(self.mask_path_dict[dict_key]).convert("L"), dtype=np.float32)
+        mask[mask == 255.0] = 1.0  # binary normalized mask
+        if self.transform is not None:
+            augmentations = self.transform(image=img, mask=mask)
+            img = augmentations["image"]
+            mask = augmentations["mask"]
+
+        return img, mask
 
 
 # debugging
 if __name__ == "__main__":
-    test_uneven_img_size()
+    # should not raise an error if the UNET inspired NN is working
+    __test_uneven_img_size()
 
 
 

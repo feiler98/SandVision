@@ -19,7 +19,7 @@ def pillow_img_transform(dict_img: dict, out_path: (str | Path) = Path.cwd()):
     ----------
     dict_img: dict
         Path of original b/w image and both masks
-    out_path = str | Path
+    out_path: str | Path
     """
     dict_contains_keys_list = list(dict_img.keys())
     dict_contains_keys_list.sort()
@@ -89,14 +89,20 @@ def pillow_img_transform(dict_img: dict, out_path: (str | Path) = Path.cwd()):
     # Clip the pixel values to be between 0 and 255.
     img_c_bcn = np.clip(img_c_bcn_pre, 0, 255).astype(np.uint8)
 
+    # mask file-name-elements
+    name_mcc, tag_mcc = dict_img["mask_circle_chamber"].stem.split("__")
+    name_mcd, tag_mcd = dict_img["mask_circle_dot"].stem.split("__")
+    name_ms, tag_ms = dict_img["mask_sand"].stem.split("__")
+
     # export & rotate images + masks
     for deg in range(0, 360, 90):
-        Image.fromarray(img_c_bcn).rotate(deg, expand=True).save(out_path / f"{dict_img["img"].stem}__rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}_b{brightness_lvl}_c{contrast_lvl}_n{noise_tag}{noise_max_lvl}.png")
-        img_c_bc.rotate(deg, expand=True).save(out_path / f"{dict_img["img"].stem}__rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}_b{brightness_lvl}_c{contrast_lvl}.png")
-        img_c.rotate(deg, expand=True).save(out_path / f"{dict_img["img"].stem}__rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}.png")
-        mask_circle_chamber_c.rotate(deg, expand=True).save(out_path / f"{dict_img["mask_circle_chamber"].stem}__rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}.png")
-        mask_circle_dot_c.rotate(deg, expand=True).save(out_path / f"{dict_img["mask_circle_dot"].stem}__rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}.png")
-        mask_sand_c.rotate(deg, expand=True).save(out_path / f"{dict_img["mask_sand"].stem}__rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}.png")
+        # split search by __ and _mut_ separator elements
+        Image.fromarray(img_c_bcn).rotate(deg, expand=True).save(out_path / f"{dict_img["img"].stem}|rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}_mut_b{brightness_lvl}_c{contrast_lvl}_n{noise_tag}{noise_max_lvl}.png")
+        img_c_bc.rotate(deg, expand=True).save(out_path / f"{dict_img["img"].stem}|rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}_mut_b{brightness_lvl}_c{contrast_lvl}.png")
+        img_c.rotate(deg, expand=True).save(out_path / f"{dict_img["img"].stem}|rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}.png")
+        mask_circle_chamber_c.rotate(deg, expand=True).save(out_path / f"{name_mcc}|rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}__{tag_mcc}.png")
+        mask_circle_dot_c.rotate(deg, expand=True).save(out_path / f"{name_mcd}|rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}__{tag_mcd}.png")
+        mask_sand_c.rotate(deg, expand=True).save(out_path / f"{name_ms}|rot{deg}_c_l{rand_left_pos}t{rand_top_pos}r{rand_right_pos}b{rand_bottom_pos}__{tag_ms}.png")
 
 
 def rgb_channel_to_binary_matrix(path_mask: (str | Path), channel: str) -> Image:
@@ -116,8 +122,9 @@ def rgb_channel_to_binary_matrix(path_mask: (str | Path), channel: str) -> Image
     # mask import
     img_mask = Image.open(path_mask)
     # transform image to numpy array
-    data = np.asarray(img_mask, dtype="int32")[:,:,idx]
+    data = np.asarray(img_mask, dtype="int32")[:, :, idx]
     # function over slices of 2d numpy array
+
     def slice_to_binary(arr: np.array):
         data_list = np.asarray(list(map(lambda x: np.asarray(255 if x > 200 else 0), list(arr))))
         return np.asarray(data_list).astype(np.uint8)
@@ -126,7 +133,18 @@ def rgb_channel_to_binary_matrix(path_mask: (str | Path), channel: str) -> Image
     img_mask_binary = Image.fromarray(single_channel_arr)
     return img_mask_binary
 
+
 def gen_stdized_ml_set(path_dir_images: (str | Path), n_transform: int = 0, file_type: str = ".png"):
+    """
+    Convert the initial color coded set of images and their respective masks to the 3 binary masks (1 channel) +
+    image (3 channels) for each image-sequence instance. Only allows conversion if all input files are present.
+
+    search input
+    - img
+    - mask_circle
+    - mask_sand
+    """
+
     # check pathing
     path_dir_images = Path(path_dir_images)
     if not path_dir_images.exists() or not path_dir_images.is_dir():
@@ -135,7 +153,7 @@ def gen_stdized_ml_set(path_dir_images: (str | Path), n_transform: int = 0, file
     path_out = path_dir_images.parent / f"{path_dir_images.stem}__ml_ready"
     path_out.mkdir(parents=True, exist_ok=True)
 
-    # get unique set of taged-files for qaulity control filtering
+    # get unique set of tagged-files for quality control filtering
     set_files = list(set([p.stem.split("__")[0] for p in path_dir_images.rglob(f"*{file_type}")]))
 
     # get dictionary with files
@@ -169,14 +187,11 @@ def gen_stdized_ml_set(path_dir_images: (str | Path), n_transform: int = 0, file
                                   "mask_circle_chamber": chamber_mask_out_path,
                                   "mask_circle_dot": dot_mask_out_path,
                                   "mask_sand": sand_mask_out_path}, path_out)
-            n+=1
-
-
+            n += 1
 
 
 if __name__ == "__main__":
-    # rgb_channel_to_binary_matrix("/Users/werne/PycharmProjects/SandVision/input_data/data/G36-6400-1600-nr16_1765067383880__mask_circle.png", "r")
-    gen_stdized_ml_set("/Users/werne/PycharmProjects/sand_vision_project/input_data/data_test", 3)
+    gen_stdized_ml_set("/home/wernerfeiler/muenster/SandVision/input_data/data", 5)
 
 
 

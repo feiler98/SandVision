@@ -12,12 +12,13 @@ import math
 from sklearn.linear_model import LinearRegression
 import os
 from multiprocessing import Pool
+
+# from local lib
+from .data_vis_utils import visualize_pred_img
+from .general_utils import mp_list_to_chunks
+
 from warnings import filterwarnings
 filterwarnings("ignore", category=DeprecationWarning)
-
-# project
-from data_vis_utils import visualize_pred_img
-from general_utils import mp_list_to_chunks
 # ----------------------------------------------------------------------------------------------------------------------
 
 

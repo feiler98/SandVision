@@ -22,3 +22,6 @@ def visualize_pred_img(path_img: (str | Path), dict_results: dict):
     ax.legend()
     plt.title(f"Prediction | {path_img.stem}", fontsize=12, fontweight="medium")
     plt.savefig(path_img.parent / f"{path_img.stem}__pred_result.png", bbox_inches="tight", dpi=150)
+
+
+

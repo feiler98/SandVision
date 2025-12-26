@@ -7,3 +7,5 @@ scikit-image
 scikit-learn
 matplotlib
 ffmpeg-python
+albumentations
+tqdm
