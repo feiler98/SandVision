@@ -1,6 +1,7 @@
 # imports
 # ----------------------------------------------------------------------------------------------------------------------
 import torch
+from torch import Tensor
 import torch.nn as nn
 from torch.utils.data import Dataset
 import torchvision.transforms.functional as tf
@@ -9,6 +10,7 @@ from PIL import Image
 import numpy as np
 from pathlib import Path
 import albumentations as A
+import cv2
 from albumentations.pytorch import ToTensorV2
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -180,9 +182,9 @@ def pred_by_model(img_dir: (str, Path), model_path: (str, Path), mask_tag: str, 
     model.load_state_dict(torch.load(model_path)["state_dict"])
     list_img_tags = list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
     img_path_dict = {tag: img_dir/f"{tag}{data_suffix}" for tag in list_img_tags}
-
     pred_transform = A.Compose(
         [
+            A.Resize(height=300, width=300),
             A.Normalize(
                 mean=[0.0, 0.0, 0.0],
                 std=[1.0, 1.0, 1.0],
@@ -194,12 +196,16 @@ def pred_by_model(img_dir: (str, Path), model_path: (str, Path), mask_tag: str, 
 
     for tag, p in img_path_dict.items():
         print(f"Predicting '{mask_tag}' for image '{tag}'")
-        img_tensor = np.array(Image.open(p).convert("RGB"))
-        augmentations = pred_transform(image=img_tensor)
+        img_arr = np.array(Image.open(p).convert("RGB"))
+        y, x, _ = img_arr.shape
+        augmentations = pred_transform(image=img_arr)
         img = augmentations["image"]
-        print(img.float().unsqueeze(0).shape)
         pred_mask = model(img.float().unsqueeze(0).to(device))
-        torchvision.utils.save_image(pred_mask, img_dir / f"{tag}{mask_tag}.png")
+        pred_mask_arr = Tensor.cpu(pred_mask).detach().numpy()
+        pred_mask_reshape = np.reshape(pred_mask_arr, (300, 300))
+        img_cv2 = cv2.resize(pred_mask_reshape*255, dsize=(x, y), interpolation=cv2.INTER_CUBIC)
+        cv2.imwrite(str(img_dir / f"{tag}{mask_tag}.png"), img_cv2)
+
 
 
 # debugging
