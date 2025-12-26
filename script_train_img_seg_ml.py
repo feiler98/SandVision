@@ -106,7 +106,7 @@ def train_ml():
                                                           NUM_WORKERS,
                                                           PIN_MEMORY)
     if LOAD_MODEL:
-        load_checkpoint(torch.load("model.pth.tar"), model)
+        load_checkpoint(torch.load(f"model{MASK_TAG}.pth.tar"), model)
 
     scaler = torch.cuda.amp.GradScaler()
 
@@ -122,7 +122,7 @@ def train_ml():
             "state_dict": model.state_dict(),
             "optimizer": optimizer.state_dict(),
         }
-        save_checkpoint(checkpoint)
+        save_checkpoint(checkpoint, f"model{MASK_TAG}.pth.tar")
 
         # check accuracy
         accuracy_params_dict = check_accuracy(val_loader, model, device=DEVICE)

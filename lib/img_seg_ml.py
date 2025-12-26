@@ -173,7 +173,12 @@ class SandDataLoader(Dataset):
 
 # run trained ml
 ########################################################################################################################
-def pred_by_model(img_dir: (str, Path), model_path: (str, Path), mask_tag: str, data_suffix=".png"):
+def pred_by_model(img_dir: (str, Path),
+                  model_path: (str, Path),
+                  mask_tag: str,
+                  data_suffix=".png",
+                  pred_shape: tuple = (300, 300)):
+    pred_x, pred_y = pred_shape
     # settings
     img_dir = Path(img_dir)
     model_path = Path(model_path)
@@ -184,7 +189,7 @@ def pred_by_model(img_dir: (str, Path), model_path: (str, Path), mask_tag: str, 
     img_path_dict = {tag: img_dir/f"{tag}{data_suffix}" for tag in list_img_tags}
     pred_transform = A.Compose(
         [
-            A.Resize(height=300, width=300),
+            A.Resize(height=pred_y, width=pred_x),
             A.Normalize(
                 mean=[0.0, 0.0, 0.0],
                 std=[1.0, 1.0, 1.0],
@@ -202,7 +207,7 @@ def pred_by_model(img_dir: (str, Path), model_path: (str, Path), mask_tag: str, 
         img = augmentations["image"]
         pred_mask = model(img.float().unsqueeze(0).to(device))
         pred_mask_arr = Tensor.cpu(pred_mask).detach().numpy()
-        pred_mask_reshape = np.reshape(pred_mask_arr, (300, 300))
+        pred_mask_reshape = np.reshape(pred_mask_arr, (pred_x, pred_y))
         img_cv2 = cv2.resize(pred_mask_reshape*255, dsize=(x, y), interpolation=cv2.INTER_CUBIC)
         cv2.imwrite(str(img_dir / f"{tag}{mask_tag}.png"), img_cv2)
 
