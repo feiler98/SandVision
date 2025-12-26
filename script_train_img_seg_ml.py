@@ -7,6 +7,7 @@ import torch.optim as optim
 from pathlib import Path
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import pandas as pd
 
 # local imports --> lib
 from lib.img_seg_ml import VisTransformer
@@ -24,11 +25,11 @@ from lib.general_utils import (load_checkpoint,
 
 LEARNING_RATE = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 16
+BATCH_SIZE = 10
 NUM_EPOCHS = 20
 NUM_WORKERS = 10
-IMAGE_HEIGHT = 300
-IMAGE_WIDTH = 300
+IMAGE_HEIGHT = 400
+IMAGE_WIDTH = 400
 PIN_MEMORY = True
 LOAD_MODEL = False
 IMG_DIR_PATH = Path("/home/wernerfeiler/muenster/SandVision/input_data/data__ml_ready")
@@ -43,7 +44,6 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
     loop = tqdm(loader)
 
     for batch_idx, (data, targets) in enumerate(loop):
-        print(data.shape)
         data = data.to(device=DEVICE)
         targets = targets.float().unsqueeze(1).to(device=DEVICE)
         # forward
@@ -109,7 +109,7 @@ def train_ml():
         load_checkpoint(torch.load(f"model{MASK_TAG}.pth.tar"), model)
 
     scaler = torch.cuda.amp.GradScaler()
-
+    dict_metrics = {}
     for epoch in range(NUM_EPOCHS):
         train_fn(train_loader,
                  model,
@@ -126,6 +126,7 @@ def train_ml():
 
         # check accuracy
         accuracy_params_dict = check_accuracy(val_loader, model, device=DEVICE)
+        dict_metrics.update({f"epoch {epoch}": accuracy_params_dict})
 
         # print some examples to a folder
         save_predictions_as_imgs(val_loader,
@@ -134,6 +135,8 @@ def train_ml():
                                  model,
                                  IMG_DIR_PATH.parent / f"pred_out{MASK_TAG}",
                                  device=DEVICE)
+    df_result = pd.DataFrame.from_dict(dict_metrics).T
+    df_result.to_csv(IMG_DIR_PATH.parent / f"ml_metrics{MASK_TAG}.csv")
 # ----------------------------------------------------------------------------------------------------------------------
 
 
