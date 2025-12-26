@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 import torchvision.transforms.functional as tf
+import torchvision
 from PIL import Image
 import numpy as np
 from pathlib import Path
@@ -144,8 +145,8 @@ class SandDataLoader(Dataset):
         self.img_dir = Path(img_dir)
         self.mask_tag = mask_tag
         self.img_tags = img_tags if img_tags is not None else list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
-        self.img_path_dict = {tag: img_dir/f"{tag}{data_suffix}" for tag in img_tags}
-        self.mask_path_dict = {tag: img_dir/f"{tag.split("_mut_")[0]}{mask_tag}{data_suffix}" for tag in img_tags}
+        self.img_path_dict = {tag: img_dir/f"{tag}{data_suffix}" for tag in img_tags}  # many images
+        self.mask_path_dict = {tag: img_dir/f"{tag.split("_mut_")[0]}{mask_tag}{data_suffix}" for tag in img_tags}  # for one and the same mask
         self.transform = transform
 
     def __len__(self):
@@ -168,10 +169,45 @@ class SandDataLoader(Dataset):
         return img, mask
 
 
+# run trained ml
+########################################################################################################################
+def pred_by_model(img_dir: (str, Path), model_path: (str, Path), mask_tag: str, data_suffix=".png"):
+    # settings
+    img_dir = Path(img_dir)
+    model_path = Path(model_path)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = VisTransformer(in_channels=3, out_channels=1).to(device)
+    model.load_state_dict(torch.load(model_path)["state_dict"])
+    list_img_tags = list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
+    img_path_dict = {tag: img_dir/f"{tag}{data_suffix}" for tag in list_img_tags}
+
+    pred_transform = A.Compose(
+        [
+            A.Normalize(
+                mean=[0.0, 0.0, 0.0],
+                std=[1.0, 1.0, 1.0],
+                max_pixel_value=255.0
+            ),
+            ToTensorV2(),
+        ],
+    )
+
+    for tag, p in img_path_dict.items():
+        print(f"Predicting '{mask_tag}' for image '{tag}'")
+        img_tensor = np.array(Image.open(p).convert("RGB"))
+        augmentations = pred_transform(image=img_tensor)
+        img = augmentations["image"]
+        print(img.float().unsqueeze(0).shape)
+        pred_mask = model(img.float().unsqueeze(0).to(device))
+        torchvision.utils.save_image(pred_mask, img_dir / f"{tag}{mask_tag}.png")
+
+
 # debugging
 if __name__ == "__main__":
     # should not raise an error if the UNET inspired NN is working
     __test_uneven_img_size()
+
+
 
 
 

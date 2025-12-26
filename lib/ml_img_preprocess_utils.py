@@ -191,7 +191,7 @@ def gen_stdized_ml_set(path_dir_images: (str | Path), n_transform: int = 0, file
 
 
 if __name__ == "__main__":
-    gen_stdized_ml_set("/home/wernerfeiler/muenster/SandVision/input_data/data", 5)
+    gen_stdized_ml_set("/home/wernerfeiler/muenster/SandVision/input_data/data", 30)
 
 
 

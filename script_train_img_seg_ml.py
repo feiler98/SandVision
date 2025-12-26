@@ -27,8 +27,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 16
 NUM_EPOCHS = 20
 NUM_WORKERS = 10
-IMAGE_HEIGHT = 500
-IMAGE_WIDTH = 500
+IMAGE_HEIGHT = 300
+IMAGE_WIDTH = 300
 PIN_MEMORY = True
 LOAD_MODEL = False
 IMG_DIR_PATH = Path("/home/wernerfeiler/muenster/SandVision/input_data/data__ml_ready")
@@ -43,9 +43,9 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
     loop = tqdm(loader)
 
     for batch_idx, (data, targets) in enumerate(loop):
+        print(data.shape)
         data = data.to(device=DEVICE)
         targets = targets.float().unsqueeze(1).to(device=DEVICE)
-
         # forward
         with torch.cuda.amp.autocast():
             predictions = model(data)
@@ -105,9 +105,9 @@ def train_ml():
                                                           BATCH_SIZE,
                                                           NUM_WORKERS,
                                                           PIN_MEMORY)
+    if LOAD_MODEL:
+        load_checkpoint(torch.load("model.pth.tar"), model)
 
-    accuracy_params = check_accuracy(val_loader, model, device=DEVICE)
-    print(accuracy_params)
     scaler = torch.cuda.amp.GradScaler()
 
     for epoch in range(NUM_EPOCHS):
@@ -125,7 +125,7 @@ def train_ml():
         save_checkpoint(checkpoint)
 
         # check accuracy
-        check_accuracy(val_loader, model, device=DEVICE)
+        accuracy_params_dict = check_accuracy(val_loader, model, device=DEVICE)
 
         # print some examples to a folder
         save_predictions_as_imgs(val_loader,

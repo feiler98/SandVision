@@ -1,10 +1,10 @@
 # imports
 # ----------------------------------------------------------------------------------------------------------------------
 import random
-import torch
-import torchvision
-from pathlib import Path
 from torch.utils.data import DataLoader
+import torchvision
+import torch
+from pathlib import Path
 
 # local lib import
 from .img_seg_ml import SandDataLoader
