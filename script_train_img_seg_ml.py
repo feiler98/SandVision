@@ -47,7 +47,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
         data = data.to(device=DEVICE)
         targets = targets.float().unsqueeze(1).to(device=DEVICE)
         # forward
-        with torch.cuda.amp.autocast():
+        with torch.amp.autocast("cuda"):
             predictions = model(data)
             loss = loss_fn(predictions, targets)
 

@@ -177,7 +177,7 @@ def pred_by_model(img_dir: (str, Path),
                   model_path: (str, Path),
                   mask_tag: str,
                   data_suffix=".png",
-                  pred_shape: tuple = (300, 300)):
+                  pred_shape: tuple = (400, 400)):
     pred_x, pred_y = pred_shape
     # settings
     img_dir = Path(img_dir)
