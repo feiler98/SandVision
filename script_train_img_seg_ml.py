@@ -33,7 +33,7 @@ IMAGE_WIDTH = 400
 PIN_MEMORY = True
 LOAD_MODEL = False
 IMG_DIR_PATH = Path("/home/wernerfeiler/muenster/SandVision/input_data/data__ml_ready")
-MASK_TAG = "__mask_circle_chamber"  # __mask_sand, __mask_circle_chamber, __mask_circle_dot
+MASK_TAG = "__mask_circle_dot"  # __mask_sand, __mask_circle_chamber, __mask_circle_dot
 
 
 #####################
@@ -94,49 +94,54 @@ def train_ml():
     loss_fn = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    dict_train_eval = ml_ready_data_cv(IMG_DIR_PATH)[1]
+    # cross validation
+    dict_train_eval = ml_ready_data_cv(IMG_DIR_PATH)
+    for split_id, dict_train_eval_split in dict_train_eval.items():
 
-    train_loader, val_loader, list_val_tags = get_loaders(IMG_DIR_PATH,
-                                                          MASK_TAG,
-                                                          dict_train_eval["train_set"],
-                                                          dict_train_eval["val_set"],
-                                                          train_transform,
-                                                          val_transform,
-                                                          BATCH_SIZE,
-                                                          NUM_WORKERS,
-                                                          PIN_MEMORY)
-    if LOAD_MODEL:
-        load_checkpoint(torch.load(f"model{MASK_TAG}.pth.tar"), model)
+        train_loader, val_loader, list_val_tags = get_loaders(IMG_DIR_PATH,
+                                                              MASK_TAG,
+                                                              dict_train_eval_split["train_set"],
+                                                              dict_train_eval_split["val_set"],
+                                                              train_transform,
+                                                              val_transform,
+                                                              BATCH_SIZE,
+                                                              NUM_WORKERS,
+                                                              PIN_MEMORY)
+        if LOAD_MODEL:
+            load_checkpoint(torch.load(f"model{MASK_TAG}.pth.tar"), model)
 
-    scaler = torch.cuda.amp.GradScaler()
-    dict_metrics = {}
-    for epoch in range(NUM_EPOCHS):
-        train_fn(train_loader,
-                 model,
-                 optimizer,
-                 loss_fn,
-                 scaler)
-
-        # save model
-        checkpoint = {
-            "state_dict": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-        }
-        save_checkpoint(checkpoint, f"model{MASK_TAG}.pth.tar")
+        scaler = torch.amp.GradScaler("cuda")
 
         # check accuracy
         accuracy_params_dict = check_accuracy(val_loader, model, device=DEVICE)
-        dict_metrics.update({f"epoch {epoch}": accuracy_params_dict})
+        dict_metrics = {"init": accuracy_params_dict}
+        for epoch in range(NUM_EPOCHS):
+            train_fn(train_loader,
+                     model,
+                     optimizer,
+                     loss_fn,
+                     scaler)
 
-        # print some examples to a folder
-        save_predictions_as_imgs(val_loader,
-                                 list_val_tags,
-                                 MASK_TAG,
-                                 model,
-                                 IMG_DIR_PATH.parent / f"pred_out{MASK_TAG}",
-                                 device=DEVICE)
-    df_result = pd.DataFrame.from_dict(dict_metrics).T
-    df_result.to_csv(IMG_DIR_PATH.parent / f"ml_metrics{MASK_TAG}.csv")
+            # save model
+            checkpoint = {
+                "state_dict": model.state_dict(),
+                "optimizer": optimizer.state_dict(),
+            }
+            save_checkpoint(checkpoint, f"model{MASK_TAG}.pth.tar")
+
+            # check accuracy
+            accuracy_params_dict = check_accuracy(val_loader, model, device=DEVICE)
+            dict_metrics.update({f"epoch {epoch+1}": accuracy_params_dict})
+
+            # print some examples to a folder
+            save_predictions_as_imgs(val_loader,
+                                     list_val_tags,
+                                     MASK_TAG,
+                                     model,
+                                     IMG_DIR_PATH.parent / f"pred_out__split_{split_id}_{MASK_TAG}",
+                                     device=DEVICE)
+        df_result = pd.DataFrame.from_dict(dict_metrics).T
+        df_result.to_csv(IMG_DIR_PATH.parent / f"pred_out__split_{split_id}{MASK_TAG}" / f"ml_metrics__split_{split_id}{MASK_TAG}.csv")
 # ----------------------------------------------------------------------------------------------------------------------
 
 
