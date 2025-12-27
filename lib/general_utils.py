@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 import torchvision
 import torch
 from pathlib import Path
+import albumentations as A
 
 # local lib import
 from .img_seg_ml import SandDataLoader
@@ -40,12 +41,29 @@ path_checkpoint = Path(__file__).parent.parent / "ml_model"
 
 def save_checkpoint(state: torch,
                     filename: str = "model.pth.tar"):
+    """
+    Parameters
+    ----------
+    state: torch
+        Extracted state of the model post training.
+    filename: str
+    """
+
     print("=> Saving checkpoint")
     torch.save(state, path_checkpoint/filename)
 
 
 def load_checkpoint(checkpoint: dict,
                     model: torch.nn.Module):
+    """
+    Inplace function for loading a checkpoint from a .pth.tar file.
+
+    Parameters
+    ----------
+    checkpoint: dict
+        Load the checkpoint dictionary via torch.load().
+    model: torch.nn.Module
+    """
     print("=> Loading checkpoint")
     model.load_state_dict(checkpoint["state_dict"])
 
@@ -54,13 +72,31 @@ def get_loaders(data_dir: (str | Path),
                 mask_tag: str,
                 train_tag_list: list,
                 val_tag_list: list,
-                train_transform,
-                val_transform,
+                train_transform: A.Compose,
+                val_transform: A.Compose,
                 batch_size: int,
                 n_jobs: int = 4,
-                pin_memory: bool = True):
+                pin_memory: bool = True) -> tuple:
     """
     Shuffel true for the training-set, not the validation-set --> no effect on performance of the model.
+
+    Parameters
+    ----------
+    data_dir: str | Path
+    mask_tag: str
+        __mask_sand, __mask_circle_chamber, __mask_circle_dot
+    train_tag_list: list
+    val_tag_list: list
+    train_transform: A.Compose
+    val_transform: A.Compose
+    batch_size: int
+    n_jobs: int
+    pin_memory: bool
+
+    Returns
+    -------
+    tuple
+        train(-set)_loader [dict], val(idation-set)_loader [dict], validation reference keys [list]
     """
 
     train_ds = SandDataLoader(
@@ -94,7 +130,20 @@ def get_loaders(data_dir: (str | Path),
 
 def check_accuracy(loader: tuple,
                    model: torch.nn.Module,
-                   device: str = "cuda"):
+                   device: str = "cuda") -> dict:
+    """
+    Parameters
+    ----------
+    loader: tuple
+    model: torch.nn.Module
+    device: str
+        Options are 'cuda' or 'cpu'
+
+    Returns
+    -------
+    dict
+        Keys: accuracy, avg_dice_score, num_correct_pixel, num_pixels
+    """
 
     # variables for evaluation
     num_correct_pixel = 0
@@ -114,7 +163,7 @@ def check_accuracy(loader: tuple,
 
     # final metrics
     accuracy = round(float(num_correct_pixel/num_pixels*100), 2)
-    avg_dice_score = round(float(dice_score/len(loader)), 2)
+    avg_dice_score = round(float(dice_score/len(loader)), 4)
 
     # evaluation output
     print(f"{num_correct_pixel}/{num_pixels} correctly predicted pixels | Accuracy: {accuracy} %")
@@ -132,6 +181,17 @@ def save_predictions_as_imgs(loader: tuple,
                              model: torch.nn.Module,
                              path_out: (str | Path),
                              device: str = "cuda"):
+    """
+    Parameters
+    ----------
+    loader: tuple
+    loader_tag_list: list
+    mask_tag: str
+    model: torch.nn.Module
+    path_out: str | Path
+    device: str
+        Options are 'cuda' or 'cpu'
+    """
 
     path_out = Path(path_out)
     if not path_out.exists():
@@ -146,7 +206,26 @@ def save_predictions_as_imgs(loader: tuple,
     model.train()
 
 
-def ml_ready_data_cv(img_dir: (str, Path), data_suffix: str = ".png", n_split: int = 3) -> dict:
+def ml_ready_data_cv(img_dir: (str, Path),
+                     data_suffix: str = ".png",
+                     n_split: int = 3) -> dict:
+    """
+    Performs CV (cross validation) for the available data within a directory. Assumes that target images and masks can
+    be distinguished by __mask_tag --> prevents redundancy.
+
+    Parameters
+    ----------
+    img_dir: str | Path
+    data_suffix: str
+    n_split: int
+        Standard split is 3.
+
+    Returns
+    -------
+    dict
+        Enumerated dictionary containing sub-dictionaries with train_set and val_set as keys.
+    """
+
     list_unique_files = list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
     random.shuffle(list_unique_files)
     slices = list(list_to_chunks(list_unique_files, n_split))

@@ -19,6 +19,7 @@ from lib.general_utils import (load_checkpoint,
                                ml_ready_data_cv)
 # ----------------------------------------------------------------------------------------------------------------------
 
+
 ###################
 # HYPERPARAMETERS #
 ###################
@@ -104,9 +105,14 @@ def train_ml():
     # cross validation
     dict_train_eval = ml_ready_data_cv(IMG_DIR_PATH)
     for split_id, dict_train_eval_split in dict_train_eval.items():
-        print_cv = f" Cross validation set number #{split_id}"
+        print("")
+        print_cv = f"| Cross validation set number #{split_id} |"
+        print("-" * len(print_cv))
         print(print_cv)
         print("-"*len(print_cv))
+
+        # path of training-results & performance
+        path_results = IMG_DIR_PATH.parent / f"pred_out__split_{split_id}{MASK_TAG}"
 
         train_loader, val_loader, list_val_tags = get_loaders(IMG_DIR_PATH,
                                                               MASK_TAG,
@@ -148,12 +154,16 @@ def train_ml():
                                      list_val_tags,
                                      MASK_TAG,
                                      model,
-                                     IMG_DIR_PATH.parent / f"pred_out__split_{split_id}_{MASK_TAG}",
+                                     path_results,
                                      device=DEVICE)
         df_result = pd.DataFrame.from_dict(dict_metrics).T
-        df_result.to_csv(IMG_DIR_PATH.parent / f"pred_out__split_{split_id}{MASK_TAG}" / f"ml_metrics__split_{split_id}{MASK_TAG}.csv")
+        df_result.to_csv(path_results / f"ml_metrics__split_{split_id}{MASK_TAG}.csv")
 # ----------------------------------------------------------------------------------------------------------------------
 
+
+################
+# RUN TRAINING #
+################
 
 if __name__ == "__main__":
     train_ml()
