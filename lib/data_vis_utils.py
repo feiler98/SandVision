@@ -8,6 +8,16 @@ import matplotlib.pyplot as plt
 
 
 def visualize_pred_img(path_img: (str | Path), dict_results: dict):
+    """
+    Visual conformation of element prediction by mask on the original image.
+
+    Parameters
+    ----------
+    path_img: str | Path
+    dict_results: dict
+        Dictionary from get_line_params_from_mask_pred function.
+    """
+
     path_img = Path(path_img)
     img_arr = np.asarray(Image.open(path_img))
     x_sand = [dict_results["sand_coords1"][0], dict_results["sand_coords2"][0]]

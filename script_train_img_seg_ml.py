@@ -24,6 +24,7 @@ from lib.general_utils import (load_checkpoint,
 # HYPERPARAMETERS #
 ###################
 
+SEED = None
 LEARNING_RATE = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 10
@@ -64,8 +65,10 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # model training
-# ----------------------------------------------------------------------------------------------------------------------
+# ==============
+
 def train_ml():
+
     print("""
 ###########################
 # VisTransformer training #
@@ -77,8 +80,8 @@ def train_ml():
         [
             A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
             A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
+                mean=(0.0, 0.0, 0.0),
+                std=(1.0, 1.0, 1.0),
                 max_pixel_value=255.0
             ),
             ToTensorV2(),
@@ -89,22 +92,27 @@ def train_ml():
         [
             A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
             A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
+                mean=(0.0, 0.0, 0.0),
+                std=(1.0, 1.0, 1.0),
                 max_pixel_value=255.0
             ),
             ToTensorV2(),
         ],
     )
 
-    # model settings
-    model = VisTransformer(in_channels=3, out_channels=1).to(DEVICE)
-    loss_fn = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
     # cross validation
     dict_train_eval = ml_ready_data_cv(IMG_DIR_PATH)
     for split_id, dict_train_eval_split in dict_train_eval.items():
+        # optional seed setting
+        if isinstance(SEED, int):
+            torch.manual_seed(abs(SEED))
+            print(f"Manual seed set to {abs(SEED)}")
+
+        # model settings
+        model = VisTransformer(in_channels=3, out_channels=1).to(DEVICE)
+        loss_fn = nn.BCEWithLogitsLoss()
+        optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+
         print("")
         print_cv = f"| Cross validation set number #{split_id} |"
         print("-" * len(print_cv))

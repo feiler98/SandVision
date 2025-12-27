@@ -191,8 +191,8 @@ def pred_by_model(img_dir: (str, Path),
         [
             A.Resize(height=pred_y, width=pred_x),
             A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
+                mean=(0.0, 0.0, 0.0),
+                std=(1.0, 1.0, 1.0),
                 max_pixel_value=255.0
             ),
             ToTensorV2(),

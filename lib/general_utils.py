@@ -12,7 +12,8 @@ from .img_seg_ml import SandDataLoader
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def list_to_chunks(input_list: list, n_chunks: int) -> list:
+def list_to_chunks(input_list: list,
+                   n_chunks: int) -> list:
     """
     Multiprocessing list to list-chunks.
 
@@ -26,6 +27,7 @@ def list_to_chunks(input_list: list, n_chunks: int) -> list:
     list
         A list of lists as generator for memory-saving.
     """
+
     n_chunks = n_chunks if n_chunks <= len(input_list) else len(input_list)
     step_size = int(len(input_list)/n_chunks-1)
     for i in range(0, len(input_list), step_size):
@@ -64,6 +66,7 @@ def load_checkpoint(checkpoint: dict,
         Load the checkpoint dictionary via torch.load().
     model: torch.nn.Module
     """
+
     print("=> Loading checkpoint")
     model.load_state_dict(checkpoint["state_dict"])
 
@@ -236,6 +239,7 @@ def ml_ready_data_cv(img_dir: (str, Path),
         list_val = slice_copy.pop(0)
         [list_train.extend(sub_slice) for sub_slice in slice_copy]
         dict_cv.update({i+1: {"train_set": list_train, "val_set": list_val}})
+
     return dict_cv
 
 

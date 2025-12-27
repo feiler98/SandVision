@@ -15,7 +15,7 @@ from multiprocessing import Pool
 
 # from local lib
 from .data_vis_utils import visualize_pred_img
-from .general_utils import mp_list_to_chunks
+from .general_utils import list_to_chunks
 
 from warnings import filterwarnings
 filterwarnings("ignore", category=DeprecationWarning)
@@ -23,6 +23,19 @@ filterwarnings("ignore", category=DeprecationWarning)
 
 
 def find_mask_circle_center(path_mask: (str | Path)) -> dict:
+    """
+    Maximal Value is searched for the x and y axis of the mask --> returns coordinates
+
+    Parameters
+    ----------
+    path_mask: str | Path
+
+    Returns
+    -------
+    dict
+        Keys: cartesian_shape, center_coordinates, xy_radius.
+    """
+
     path_mask = Path(path_mask)
     if not path_mask.exists() and not path_mask.is_file():
         raise ValueError(f"Given path '{path_mask}' was expected to be a file!")
@@ -46,7 +59,26 @@ def find_mask_circle_center(path_mask: (str | Path)) -> dict:
             "xy_radius": (rad_x, rad_y)}
 
 
-def create_circle(cartesian_shape: tuple, center_coordinates: tuple, xy_radius: tuple) -> np.array:
+def create_circle(cartesian_shape: tuple,
+                  center_coordinates: tuple,
+                  xy_radius: tuple) -> np.array:
+    """
+    Creates a mask based on the __mask_circle_chamber prediction, decreases size
+    for trimming of the __mask_sand prediction.
+    Input find_mask_circle_center output as **kwargs.
+
+    Parameters
+    ----------
+    cartesian_shape: tuple
+    center_coordinates: tuple
+    xy_radius: tuple
+
+    Returns
+    -------
+    np.array
+        White circle on black canvas (0-1 normalized) as numpy-array.
+    """
+
     x_radius = int(xy_radius[0]*0.9) # remove teething for better prediction
     y_radius = int(xy_radius[1]*0.9)
     nx = cartesian_shape[0]  # number of pixels in x-dir
@@ -59,7 +91,23 @@ def create_circle(cartesian_shape: tuple, center_coordinates: tuple, xy_radius: 
     return black_canvas
 
 
-def calc_line_by_two_points(xy_point1: tuple, xy_point2: tuple) -> tuple:
+def calc_line_by_two_points(xy_point1: tuple,
+                            xy_point2: tuple) -> tuple:
+    """
+    Transforms two points into a linear-function for angle calculation downstream.
+
+    Parameters
+    ----------
+    xy_point1: tuple
+        (x-coordinate, y-coordinate)
+    xy_point2: tuple
+        (x-coordinate, y-coordinate)
+
+    Returns
+    -------
+        Slope m & intersection t for equation y = mx + t.
+    """
+
     if xy_point1[0] == xy_point2[0]:
         xy_point1 = (xy_point1[0]+0.0001, xy_point1[1])
     x_coords, y_coords = zip(*[xy_point1, xy_point2])
@@ -70,10 +118,36 @@ def calc_line_by_two_points(xy_point1: tuple, xy_point2: tuple) -> tuple:
 
 
 def calc_two_line_angle(m_line1: (int | float), m_line2: (int | float)) -> float:
+    """
+    Angle calculation between two lines.
+
+    Parameters
+    ----------
+    m_line1: int | float
+    m_line2: int | float
+
+    Returns
+    -------
+    float
+        Angle between the lines.
+    """
+
     return round(math.atan(abs((m_line1 - m_line2) / (1 + m_line1 * m_line2))), 2)
 
 
 def sand_mask_get_outline_mtx(path_mask: (str | Path)) -> np.array:
+    """
+    Generates outline around shape --> extract coordinates of each pixel post smaller-circle overlay.
+
+    Parameters
+    ----------
+    path_mask: str | Path
+
+    Returns
+    -------
+    np.array
+    """
+
     img_sand_mask = Image.open(path_mask)
     img_outline = img_sand_mask.filter(ImageFilter.FIND_EDGES)
     arr_outline = np.asarray(img_outline)
@@ -82,13 +156,25 @@ def sand_mask_get_outline_mtx(path_mask: (str | Path)) -> np.array:
 
 
 def lin_reg_sand(arr: np.array) -> tuple:
+    """
+    Scikit-Learn linear-regression model for point extraction.
+
+    Parameters
+    ----------
+    arr: np.array
+
+    Returns
+    -------
+    tuple
+        Point1 & point2 are returned for linear function calculation.
+    """
+
     y, X = list(np.where(arr == 1))
-    X = X #[::-1]
     model_lin_reg = LinearRegression(n_jobs=-1)
     model_lin_reg.fit(X.reshape(-1, 1), y.reshape(-1, 1))
     X_pred = np.array([X.min(), X.max()]).reshape(-1, 1)
     y_pred = model_lin_reg.predict(X_pred)
-    # plt.scatter(X, y)
+    # plt.scatter(X, y)  # visualize for testing purposes
     # plt.show()
 
     point1, point2 = [(float(x), float(y)) for x, y in zip(X_pred, y_pred)]
@@ -98,6 +184,19 @@ def lin_reg_sand(arr: np.array) -> tuple:
 def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
                                    path_mask_dot: (str | Path),
                                    path_mask_sand: (str | Path)) -> dict:
+    """
+    Parameters
+    ----------
+    path_mask_chamber: str | Path
+    path_mask_dot: str | Path
+    path_mask_sand: str | Path
+
+    Returns
+    -------
+    dict
+        Coordinates & linear-functions extracted from mask-element prediction of the sand chamber.
+    """
+
     # pathing
     path_mask_chamber = Path(path_mask_chamber)
     path_mask_dot = Path(path_mask_dot)
@@ -137,13 +236,23 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
 
 
 def mask_result_eval(path_ml_out: (str | Path)):
+    """
+    Multiprocessing function for extracting all image prediction images.
+    Exports a csv file with all results.
+
+    Parameters
+    ----------
+    path_ml_out: str | Path
+        Output folder with all image-mask predictions. 3 masks per image must be generated as a prerequisite.
+    """
+
     path_ml_out = Path(path_ml_out)
 
     # get image path
     set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
     n_cores = os.cpu_count()
     with Pool(n_cores) as pool:
-        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in mp_list_to_chunks(set_img_tags, n_cores)])
+        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in list_to_chunks(set_img_tags, n_cores)])
     dict_unite = {}
     for result_dict in result_list:
         dict_unite.update(result_dict)
@@ -152,7 +261,24 @@ def mask_result_eval(path_ml_out: (str | Path)):
 
 
 # func for mask_result_eval multiprocessing element
-def mp_data_generation(path_out: (str | Path), list_img_tags: list, file_type=".png") -> dict:
+def mp_data_generation(path_out: (str | Path),
+                       list_img_tags: list,
+                       file_type=".png") -> dict:
+    """
+    Sub-function for the multiprocessing mask_result_eval function.
+
+    Parameters
+    ----------
+    path_out: str | Path
+    list_img_tags: list
+    file_type: .png
+
+    Returns
+    -------
+    dict
+        Dictionary from get_line_params_from_mask_pred function.
+    """
+
     mask_tags = ["mask_circle_chamber", "mask_circle_dot", "mask_sand", "img"]
     dict_results_collect = {}
     for unique_file in list_img_tags:
@@ -168,8 +294,8 @@ def mp_data_generation(path_out: (str | Path), list_img_tags: list, file_type=".
                                                    dict_path_file_group["mask_circle_dot"],
                                                    dict_path_file_group["mask_sand"])
         visualize_pred_img(dict_path_file_group["img"], dict_pred)
-        dict_results_collect.update({unique_file:dict_pred})
-    return dict_pred
+        dict_results_collect.update({unique_file: dict_pred})
+    return dict_results_collect
 
 
 # debugging
