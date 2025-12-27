@@ -65,6 +65,13 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 # model training
 # ----------------------------------------------------------------------------------------------------------------------
 def train_ml():
+    print("""
+###########################
+# VisTransformer training #
+###########################
+""")
+    print(f"""> model for {MASK_TAG} prediction <
+""")
     train_transform = A.Compose(
         [
             A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
@@ -97,6 +104,9 @@ def train_ml():
     # cross validation
     dict_train_eval = ml_ready_data_cv(IMG_DIR_PATH)
     for split_id, dict_train_eval_split in dict_train_eval.items():
+        print_cv = f" Cross validation set number #{split_id}"
+        print(print_cv)
+        print("-"*len(print_cv))
 
         train_loader, val_loader, list_val_tags = get_loaders(IMG_DIR_PATH,
                                                               MASK_TAG,
