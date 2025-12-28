@@ -6,7 +6,7 @@ import pandas as pd
 from PIL import Image, ImageFilter
 import numpy as np
 from skimage.draw import ellipse
-from numpy import ones,vstack
+from numpy import ones, vstack
 from numpy.linalg import lstsq
 import math
 from sklearn.linear_model import LinearRegression
