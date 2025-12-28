@@ -79,8 +79,8 @@ def create_circle(cartesian_shape: tuple,
         White circle on black canvas (0-1 normalized) as numpy-array.
     """
 
-    x_radius = int(xy_radius[0]*0.9) # remove teething for better prediction
-    y_radius = int(xy_radius[1]*0.9)
+    x_radius = int(xy_radius[0]*0.75)  # remove teething for better prediction
+    y_radius = int(xy_radius[1]*0.75)
     nx = cartesian_shape[0]  # number of pixels in x-dir
     ny = cartesian_shape[1]  # number of pixels in y-dir
 
@@ -170,10 +170,15 @@ def lin_reg_sand(arr: np.array) -> tuple:
     """
 
     y, X = list(np.where(arr == 1))
+    # too many points clustered decrease linear-reg performance --> thin out by creating steps
+    list_idx = list(range(0, len(y), 30))
+    y = y[list_idx]
+    X = X[list_idx]
     model_lin_reg = LinearRegression(n_jobs=-1)
     model_lin_reg.fit(X.reshape(-1, 1), y.reshape(-1, 1))
     X_pred = np.array([X.min(), X.max()]).reshape(-1, 1)
     y_pred = model_lin_reg.predict(X_pred)
+
     # plt.scatter(X, y)  # visualize for testing purposes
     # plt.show()
 
@@ -211,7 +216,8 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
     arr_sand_outline = sand_mask_get_outline_mtx(path_mask_sand)
     arr_masked_sand_outline = arr_circle*arr_sand_outline
     point1_sand, point2_sand = lin_reg_sand(arr_masked_sand_outline)
-    # Image.fromarray(arr_masked_sand_outline*255).show()
+    print(point1_sand, point2_sand)
+    # Image.fromarray(arr_masked_sand_outline*255).show()  # validation of masked sand-border estimation
 
     # calculate y = mx + t linear equation parameters
     x_chamber, y_chamber = dict_center_chamber["center_coordinates"]
@@ -220,12 +226,10 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
     y_dot = dict_center_dot["cartesian_shape"][1] - y_dot
     m_circle, t_circle = calc_line_by_two_points((x_chamber, y_chamber), (x_dot, y_dot))
     x_sand1, y_sand1 = point1_sand
-    y_sand1 = dict_center_chamber["cartesian_shape"][1] - y_sand1
     x_sand2, y_sand2 = point2_sand
-    y_sand2 = dict_center_dot["cartesian_shape"][1] - y_sand2
     m_sand, t_sand = calc_line_by_two_points((x_sand1, y_sand1), (x_sand2, y_sand2))
 
-    return {"chamber_center_coords":dict_center_chamber["center_coordinates"],
+    return {"chamber_center_coords": dict_center_chamber["center_coordinates"],
             "chamber_dot_coords": dict_center_dot["center_coordinates"],
             "sand_coords1": (int(x_sand1), int(y_sand1)),
             "sand_coords2": (int(x_sand2), int(y_sand2)),
@@ -263,7 +267,8 @@ def mask_result_eval(path_ml_out: (str | Path)):
 # func for mask_result_eval multiprocessing element
 def mp_data_generation(path_out: (str | Path),
                        list_img_tags: list,
-                       file_type=".png") -> dict:
+                       file_type=".png",
+                       visualize_pred: bool = True) -> dict:
     """
     Sub-function for the multiprocessing mask_result_eval function.
 
@@ -271,7 +276,8 @@ def mp_data_generation(path_out: (str | Path),
     ----------
     path_out: str | Path
     list_img_tags: list
-    file_type: .png
+    file_type: str
+    visualize_pred: bool
 
     Returns
     -------
@@ -293,7 +299,8 @@ def mp_data_generation(path_out: (str | Path),
         dict_pred = get_line_params_from_mask_pred(dict_path_file_group["mask_circle_chamber"],
                                                    dict_path_file_group["mask_circle_dot"],
                                                    dict_path_file_group["mask_sand"])
-        visualize_pred_img(dict_path_file_group["img"], dict_pred)
+        if visualize_pred:
+            visualize_pred_img(dict_path_file_group["img"], dict_pred)
         dict_results_collect.update({unique_file: dict_pred})
     return dict_results_collect
 
