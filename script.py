@@ -31,4 +31,5 @@ def analysis_img_seq(path_img_dir: (str | Path)):
 
 
 if __name__ == "__main__":
-    analysis_img_seq("/home/wernerfeiler/muenster/SandVision/input_data/test_script")
+    analysis_img_seq("/home/wernerfeiler/muenster/SandVision/input_data/example_out")
+

@@ -131,8 +131,32 @@ def calc_two_line_angle(m_line1: (int | float), m_line2: (int | float)) -> float
     float
         Angle between the lines.
     """
+    m_line1, m_line2 = abs(m_line1), abs(m_line2)
+    tan_theta = abs((m_line2 - m_line1) / (1 + m_line1 * m_line2))
+    angle_rad = math.atan(tan_theta)
+    return math.degrees(angle_rad)
 
-    return round(math.atan(abs((m_line1 - m_line2) / (1 + m_line1 * m_line2))), 2)
+
+def calculate_line_angle(point1: tuple, point2: tuple) -> float:
+    """
+    Calculates the angle of a line segment (p1 to p2) in degrees (0-360).
+    p1 and p2 are tuples or lists: (x, y)
+    """
+    x1, y1 = point1
+    x2, y2 = point2
+
+    # Calculate the difference in coordinates
+    dx = x2 - x1
+    dy = y2 - y1
+
+    radians = math.atan2(dy, dx)  # Use atan2 to get the angle in radians (handles all quadrants)
+    degrees = math.degrees(radians)
+
+    # Normalize to 0-360 degrees range
+    # (degrees % 360) ensures it wraps around correctly, e.g., -90 % 360 = 270
+    angle_360 = degrees % 360
+
+    return angle_360
 
 
 def sand_mask_get_outline_mtx(path_mask: (str | Path)) -> np.array:
@@ -261,7 +285,13 @@ def mask_result_eval(path_ml_out: (str | Path)):
     for result_dict in result_list:
         dict_unite.update(result_dict)
     df_result = pd.DataFrame(dict_unite).T
-    print(df_result)
+    list_angle_lines = [calc_two_line_angle(row["circle_line__m"], row["sand_line__m"]) for _, row in df_result.iterrows()]
+    df_result["angle_rel_sandXchamber_lines"] = list_angle_lines
+    list_angle_sand = [calculate_line_angle(row["sand_coords1"], row["sand_coords2"]) for _, row in df_result.iterrows()]
+    df_result["angle_h_abs_sand"] = list_angle_sand
+    list_angle_chamber = [calculate_line_angle(row["chamber_center_coords"], row["chamber_dot_coords"]) for _, row in df_result.iterrows()]
+    df_result["angle_h_abs_chamber"] = list_angle_chamber
+
     df_result.to_excel(path_ml_out / f"{path_ml_out.name}__eval.xlsx")
 
 
@@ -309,11 +339,6 @@ def mp_data_generation(path_out: (str | Path),
 
 # debugging
 if __name__ == "__main__":
-    path_data = Path("/Users/werne/PycharmProjects/sand_vision_project/input_data/data_test__ml_ready")
-    dict_out = get_line_params_from_mask_pred(path_data/"G36-6400-1600-nr16_1765067248000__mask_circle_chamber.png",
-                                         path_data/"G36-6400-1600-nr16_1765067248000__mask_circle_dot.png",
-                                         path_data/"G36-6400-1600-nr16_1765067248000__mask_sand.png")
-    print(dict_out)
-    visualize_pred_img("/Users/werne/PycharmProjects/sand_vision_project/input_data/data_test__ml_ready/G36-6400-1600-nr16_1765067248000.png", dict_out)
+    pass
 
 
