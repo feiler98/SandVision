@@ -9,3 +9,4 @@ matplotlib
 ffmpeg-python
 albumentations
 tqdm
+openpyxl

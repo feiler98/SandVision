@@ -260,8 +260,9 @@ def mask_result_eval(path_ml_out: (str | Path)):
     dict_unite = {}
     for result_dict in result_list:
         dict_unite.update(result_dict)
-    df_result = pd.DataFrame.from_dict(dict_unite).T
-    df_result.to_csv(path_ml_out / f"{path_ml_out.name}__eval.csv")
+    df_result = pd.DataFrame(dict_unite).T
+    print(df_result)
+    df_result.to_excel(path_ml_out / f"{path_ml_out.name}__eval.xlsx")
 
 
 # func for mask_result_eval multiprocessing element
@@ -299,6 +300,7 @@ def mp_data_generation(path_out: (str | Path),
         dict_pred = get_line_params_from_mask_pred(dict_path_file_group["mask_circle_chamber"],
                                                    dict_path_file_group["mask_circle_dot"],
                                                    dict_path_file_group["mask_sand"])
+
         if visualize_pred:
             visualize_pred_img(dict_path_file_group["img"], dict_pred)
         dict_results_collect.update({unique_file: dict_pred})
