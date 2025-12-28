@@ -29,7 +29,7 @@ def list_to_chunks(input_list: list,
     """
 
     n_chunks = n_chunks if n_chunks <= len(input_list) else len(input_list)
-    step_size = int(len(input_list)/n_chunks-1)
+    step_size = int(len(input_list)/n_chunks)+1
     for i in range(0, len(input_list), step_size):
         yield input_list[i:i+step_size]
 
