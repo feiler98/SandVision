@@ -28,14 +28,14 @@ SEED = None
 LEARNING_RATE = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 10
-NUM_EPOCHS = 20
+NUM_EPOCHS = 15
 NUM_WORKERS = 10
 IMAGE_HEIGHT = 400
 IMAGE_WIDTH = 400
 PIN_MEMORY = True
-LOAD_MODEL = False
+LOAD_MODEL = True
 IMG_DIR_PATH = Path("/home/wernerfeiler/muenster/SandVision/input_data/data__ml_ready")
-MASK_TAG = "__mask_sand"  # __mask_sand, __mask_circle_chamber, __mask_circle_dot
+MASK_TAG = "__mask_circle_chamber"  # __mask_sand, __mask_circle_chamber, __mask_circle_dot
 
 
 #####################
@@ -131,8 +131,10 @@ def train_ml():
                                                               BATCH_SIZE,
                                                               NUM_WORKERS,
                                                               PIN_MEMORY)
-        if LOAD_MODEL:
-            load_checkpoint(torch.load(f"model{MASK_TAG}.pth.tar"), model)
+
+        path_model = Path(__file__).parent / "ml_model" / f"model{MASK_TAG}.pth.tar"
+        if LOAD_MODEL and path_model.exists():
+            load_checkpoint(torch.load(path_model), model)
 
         scaler = torch.amp.GradScaler("cuda")
 
@@ -140,6 +142,8 @@ def train_ml():
         accuracy_params_dict = check_accuracy(val_loader, model, device=DEVICE)
         dict_metrics = {"init": accuracy_params_dict}
         for epoch in range(NUM_EPOCHS):
+            print(f"""
+>> CV {split_id} / {len(dict_train_eval)} | Training epoch {epoch} / {NUM_EPOCHS}""")
             train_fn(train_loader,
                      model,
                      optimizer,

@@ -50,7 +50,8 @@ def save_checkpoint(state: torch,
         Extracted state of the model post training.
     filename: str
     """
-
+    if not path_checkpoint.exists():
+        path_checkpoint.mkdir(exist_ok=True, parents=True)
     print("=> Saving checkpoint")
     torch.save(state, path_checkpoint/filename)
 

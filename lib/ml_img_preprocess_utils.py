@@ -163,7 +163,7 @@ def gen_stdized_ml_set(path_dir_images: (str | Path),
     # get dictionary with files
     list_required_elements = ["img", "mask_circle", "mask_sand"]
     for unique_file in set_files:
-        dict_path_file_group = {(p.stem.split("__")[1] if len(p.stem.split("__")) > 1 else "img"):p for p in path_dir_images.rglob(f"*{unique_file}*{file_type}")}
+        dict_path_file_group = {(p.stem.split("__")[1] if len(p.stem.split("__")) > 1 else "img"): p for p in path_dir_images.rglob(f"*{unique_file}*{file_type}")}
         # list of required keys must be identical
         len_compare_keys = len([k for k in list_required_elements if k in dict_path_file_group.keys()])
         # otherwise skip execution below
