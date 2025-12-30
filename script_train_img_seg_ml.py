@@ -33,9 +33,9 @@ NUM_WORKERS = 10
 IMAGE_HEIGHT = 400
 IMAGE_WIDTH = 400
 PIN_MEMORY = True
-LOAD_MODEL = True
+LOAD_MODEL = False
 IMG_DIR_PATH = Path("/home/wernerfeiler/muenster/SandVision/input_data/data__ml_ready")
-MASK_TAG = "__mask_circle_chamber"  # __mask_sand, __mask_circle_chamber, __mask_circle_dot
+MASK_TAG = "__mask_circle_dot"  # __mask_sand, __mask_circle_chamber, __mask_circle_dot
 
 
 #####################
@@ -143,7 +143,7 @@ def train_ml():
         dict_metrics = {"init": accuracy_params_dict}
         for epoch in range(NUM_EPOCHS):
             print(f"""
->> CV {split_id} / {len(dict_train_eval)} | Training epoch {epoch} / {NUM_EPOCHS}""")
+>> CV {split_id} / {len(dict_train_eval)} | Training epoch {epoch+1} / {NUM_EPOCHS}""")
             train_fn(train_loader,
                      model,
                      optimizer,
