@@ -57,7 +57,7 @@ Cumulative 3-fold cross validation with ~30,000 images generated from 79 origina
 
 <br />
 
-3-fold cross validation with ~30,000 images generated from 79 original images (model retrain for each cross validation)
+3-fold cross validation with ~30,000 images generated from 79 original images <br /> (model retrain for each cross validation)
 <table>
     <tr>
         <th>mask</th>
