@@ -31,8 +31,8 @@ It is recommended to use the program in combination with PyCharm or as Docker ap
 <br />
 
 ## Predictive-Performance 
-3-fold cross validation with ~30,000 images generated from 79 original images
-<table style="width: 80%;">
+Cumulative 3-fold cross validation with ~30,000 images generated from 79 original images
+<table>
     <tr>
         <th>mask</th>
         <th>pixel accuracy</th>
@@ -52,6 +52,32 @@ It is recommended to use the program in combination with PyCharm or as Docker ap
         <td>sand</td>
         <td>99.72 %</td>
         <td>98.76 %</td>
+    </tr>
+</table>
+
+<br />
+
+3-fold cross validation with ~30,000 images generated from 79 original images (model retrain for each cross validation)
+<table>
+    <tr>
+        <th>mask</th>
+        <th>pixel accuracy</th>
+        <th>dice score</th>
+    </tr>
+    <tr>
+        <td>circle-chamber</td>
+        <td>98.90±0.33 %</td>
+        <td>97.74±0.67 %</td>
+    </tr>
+    <tr>
+        <td>white-dot-marker</td>
+        <td>99.97±0.00 %</td>
+        <td>96.10±0.48 %</td>
+    </tr>
+    <tr>
+        <td>sand</td>
+        <td>99.43±0.10 %</td>
+        <td>97.57±0.41 %</td>
     </tr>
 </table>
 
