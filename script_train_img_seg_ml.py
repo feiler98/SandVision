@@ -33,7 +33,7 @@ NUM_WORKERS = 10
 IMAGE_HEIGHT = 400
 IMAGE_WIDTH = 400
 PIN_MEMORY = True
-LOAD_MODEL = False
+LOAD_MODEL = True
 IMG_DIR_PATH = Path("/home/wernerfeiler/muenster/SandVision/input_data/data__ml_ready")
 MASK_TAG = "__mask_circle_dot"  # __mask_sand, __mask_circle_chamber, __mask_circle_dot
 
