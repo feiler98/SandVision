@@ -69,4 +69,4 @@ Usage of the program is allowed with credits to the authors.
 Please read through the LICENSE for further information in regard to download, usage, and distribution of the software.
 
 ## Data / Model Availability
-Training Data and Models are not included on the repository and are only made available upon request.
+Training Data and Models are not included in the repository and are only made available upon request.
