@@ -33,7 +33,9 @@ It is recommended to use the program in combination with PyCharm or as Docker ap
 **W. Feiler** | construction of data processing and machine learning pipeline  <br />
 **R. Lößlein** | data production and image masking for ML-training
 <br />
+<br />
 Credits to Aladdin Persson for his UNET implementation | https://www.youtube.com/@AladdinPersson
+<br />
 <br />
 Usage of the program is allowed with credits to the authors. 
 <br />
