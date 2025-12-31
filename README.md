@@ -22,14 +22,16 @@ sudo yum install -r requirements.txt
 It is recommended to use the program in combination with PyCharm or as Docker application (see Dockerfile).
 
 <br />
+
 ## Usage
 - training of the model: script_train_img_seg_ml.py 
 - prediction of image-sequence data: script.py
 
 <br />
+
 ## Authorship
-__W. Feiler__ | construction of data processing and machine learning pipeline  <br />
-__R. Lößlein__ | data production and image masking for ML-training
+**W. Feiler** | construction of data processing and machine learning pipeline  <br />
+**R. Lößlein** | data production and image masking for ML-training
 
 Usage of the program is allowed with credits to the authors. 
 Please read through the LICENSE for further information in regard to download, usage, and distribution of the software.
