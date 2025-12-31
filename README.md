@@ -3,7 +3,7 @@
 SandVision aims to automate the analysis of video-recordings of the sand within a rotating chamber.
 Specifically, it aims to automatically detect the chamber-rotating-angle and the sand-surface-angle relatively
 to the cartesian coordinate system.
-This allows the calculation the time point of the sand-slide and the maximal tilt angle of the sand until instability.
+This allows the calculation of the sand-slides time point and the maximal tilt angle of the sand until instability.
 
 <br />
 <img src="./example_out/G36-6400-1600-nr16_1765067248000__pred_result.png" style="width: 100%;">
