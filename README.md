@@ -1,9 +1,9 @@
 # SandVision
 
-SandVision aims to automate the analysis of video-recordings of the sand within a rotating chamber.
-Specifically, it aims to automatically detect the chamber-rotating-angle and the sand-surface-angle relatively
-to the cartesian coordinate system.
-This allows the calculation of the sand-slides time point and the maximal tilt angle of the sand until instability.
+SandVision aims to automate the analysis of video-recordings of sand-behavior within a rotating chamber.
+Specifically, it aims to detect the chamber-rotating-angle and the sand-surface-angle relatively
+to the cartesian coordinate system by a UNET-inspired machine learning model.
+This allows the calculation of the sand-slide timepoint and the maximal tilt angle of the sand until instability.
 
 <br />
 <img src="./example_out/G36-6400-1600-nr16_1765067248000__pred_result.png" style="width: 100%;">
@@ -26,6 +26,32 @@ It is recommended to use the program in combination with PyCharm or as Docker ap
 ## Usage
 - training of the model: script_train_img_seg_ml.py 
 - prediction of image-sequence data: script.py
+
+<br />
+
+## Performance
+<table style="width: 80%;">
+    <tr>
+        <th>mask</th>
+        <th>pixel accuracy</th>
+        <th>dice score</th>
+    </tr>
+    <tr>
+        <td>circle-chamber</td>
+        <td>99.45 %</td>
+        <td>98.87 %</td>
+    </tr>
+    <tr>
+        <td>white-dot-marker</td>
+        <td>99.98 %</td>
+        <td>97.55 %</td>
+    </tr>
+    <tr>
+        <td>sand</td>
+        <td>99.72 %</td>
+        <td>98.76 %</td>
+    </tr>
+</table>
 
 <br />
 
