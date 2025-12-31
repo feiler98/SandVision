@@ -7,6 +7,7 @@ This allows the calculation of the sand-slide timepoint and the maximal tilt ang
 
 <br />
 <img src="./example_out/G36-6400-1600-nr16_1765067248000__pred_result.png" style="width: 100%;">
+
 <br />
 
 ## Download
@@ -67,6 +68,8 @@ Credits to Aladdin Persson for his UNET implementation | https://www.youtube.com
 Usage of the program is allowed with credits to the authors. 
 <br />
 Please read through the LICENSE for further information in regard to download, usage, and distribution of the software.
+
+<br />
 
 ## Data / Model Availability
 Training data and models are not included in the repository and are only provided upon request.
