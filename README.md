@@ -29,7 +29,8 @@ It is recommended to use the program in combination with PyCharm or as Docker ap
 
 <br />
 
-## Performance
+## Predictive-Performance 
+3-fold cross validation with ~30,000 images generated from 79 original images
 <table style="width: 80%;">
     <tr>
         <th>mask</th>
