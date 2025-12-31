@@ -240,8 +240,7 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
     arr_sand_outline = sand_mask_get_outline_mtx(path_mask_sand)
     arr_masked_sand_outline = arr_circle*arr_sand_outline
     point1_sand, point2_sand = lin_reg_sand(arr_masked_sand_outline)
-    print(point1_sand, point2_sand)
-    Image.fromarray(arr_masked_sand_outline*255).show()  # validation of masked sand-border estimation
+    # Image.fromarray(arr_masked_sand_outline*255).show()  # validation of masked sand-border estimation
 
     # calculate y = mx + t linear equation parameters
     x_chamber, y_chamber = dict_center_chamber["center_coordinates"]
