@@ -67,3 +67,6 @@ Credits to Aladdin Persson for his UNET implementation | https://www.youtube.com
 Usage of the program is allowed with credits to the authors. 
 <br />
 Please read through the LICENSE for further information in regard to download, usage, and distribution of the software.
+
+## Data / Model Availability
+Training Data and Models are not included on the repository and are only made available upon request.
