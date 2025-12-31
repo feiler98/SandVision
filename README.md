@@ -25,8 +25,8 @@ It is recommended to use the program in combination with PyCharm or as Docker ap
 <br />
 
 ## Usage
-- training of the model: script_train_img_seg_ml.py 
-- prediction of image-sequence data: script.py
+- training of the model: **script_train_img_seg_ml.py**
+- prediction of image-sequence data: **script.py**
 
 <br />
 
