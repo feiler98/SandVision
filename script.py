@@ -16,7 +16,6 @@ def analysis_img_seq(path_img_dir: (str | Path)):
     """
     # paths
     path_img_dir = Path(path_img_dir)
-    path_out = path_img_dir.parent / f"{path_img_dir.name}__out_result"
     path_models = Path(__file__).parent / "ml_model"
     if not path_models.exists():
         raise ValueError(f"Model directory '{path_models}' does not exist!")
@@ -31,5 +30,5 @@ def analysis_img_seq(path_img_dir: (str | Path)):
 
 
 if __name__ == "__main__":
-    analysis_img_seq("/home/wernerfeiler/muenster/SandVision/input_data/example_out")
+    analysis_img_seq("/run/media/wernerfeiler/Frei SSD/fullAnalysis_W3-6400-3200-nr25")
 

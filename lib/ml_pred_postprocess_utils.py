@@ -279,7 +279,7 @@ def mask_result_eval(path_ml_out: (str | Path)):
     set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
     n_cores = os.cpu_count()
     with Pool(n_cores) as pool:
-        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in list_to_chunks(set_img_tags, n_cores)])
+        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in list_to_chunks(set_img_tags, chunk_max_size=1000)])
     dict_unite = {}
     for result_dict in result_list:
         dict_unite.update(result_dict)

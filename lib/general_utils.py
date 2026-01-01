@@ -13,7 +13,8 @@ from .img_seg_ml import SandDataLoader
 
 
 def list_to_chunks(input_list: list,
-                   n_chunks: int) -> list:
+                   n_chunks: int = 1000,
+                   chunk_max_size: (int | None) = None) -> list:
     """
     Multiprocessing list to list-chunks.
 
@@ -21,15 +22,19 @@ def list_to_chunks(input_list: list,
     ----------
     input_list: list
     n_chunks: int
+    chunk_max_size: int | None
+        Prevents overload of RAM when multiprocessing
 
     Returns
     -------
     list
         A list of lists as generator for memory-saving.
     """
-
-    n_chunks = n_chunks if n_chunks <= len(input_list) else len(input_list)
-    step_size = int(len(input_list)/n_chunks)+1
+    if chunk_max_size is None:
+        n_chunks = n_chunks if n_chunks <= len(input_list) else len(input_list)
+        step_size = int(len(input_list)/n_chunks)+1
+    else:
+        step_size = chunk_max_size if chunk_max_size <= len(input_list) else len(input_list)
     for i in range(0, len(input_list), step_size):
         yield input_list[i:i+step_size]
 
