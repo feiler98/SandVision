@@ -9,7 +9,7 @@ from skimage.draw import ellipse
 from numpy import ones, vstack
 from numpy.linalg import lstsq
 import math
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Lasso
 import os
 from multiprocessing import Pool
 import gc
@@ -196,10 +196,14 @@ def lin_reg_sand(arr: np.array) -> tuple:
 
     y, X = list(np.where(arr == 1))
     # too many points clustered decrease linear-reg performance --> thin out by creating steps
-    list_idx = list(range(0, len(y), 30))
+    list_idx = list(range(0, len(y), int(len(y)/20)))
     y = y[list_idx]
     X = X[list_idx]
-    model_lin_reg = LinearRegression(n_jobs=-1)
+
+    # swap axis to avoid extrema issue with non-continuity for vertical lines
+    # --> sand surface tends to be in that state due to the clockwise rotation
+    y, X = X, y
+    model_lin_reg = Lasso(alpha=0.1)
     model_lin_reg.fit(X.reshape(-1, 1), y.reshape(-1, 1))
     X_pred = np.array([X.min(), X.max()]).reshape(-1, 1)
     y_pred = model_lin_reg.predict(X_pred)
@@ -207,7 +211,7 @@ def lin_reg_sand(arr: np.array) -> tuple:
     # plt.scatter(X, y)  # visualize for testing purposes
     # plt.show()
 
-    point1, point2 = [(float(x), float(y)) for x, y in zip(X_pred, y_pred)]
+    point1, point2 = [(float(y), float(x)) for x, y in zip(X_pred, y_pred)]
     return point1, point2
 
 
