@@ -12,6 +12,7 @@ import math
 from sklearn.linear_model import LinearRegression
 import os
 from multiprocessing import Pool
+import gc
 
 # from local lib
 from .data_vis_utils import visualize_pred_img
@@ -79,8 +80,8 @@ def create_circle(cartesian_shape: tuple,
         White circle on black canvas (0-1 normalized) as numpy-array.
     """
 
-    x_radius = int(xy_radius[0]*0.6)  # remove teething for better prediction
-    y_radius = int(xy_radius[1]*0.6)
+    x_radius = int(xy_radius[0]*0.85)  # remove teething for better prediction
+    y_radius = int(xy_radius[1]*0.85)
     nx = cartesian_shape[0]  # number of pixels in x-dir
     ny = cartesian_shape[1]  # number of pixels in y-dir
 
@@ -262,7 +263,7 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
             "sand_line__t": float(t_sand)}
 
 
-def mask_result_eval(path_ml_out: (str | Path)):
+def mask_result_eval(path_ml_out: (str | Path), n_cores: int = 10):
     """
     Multiprocessing function for extracting all image prediction images.
     Exports a csv file with all results.
@@ -271,18 +272,26 @@ def mask_result_eval(path_ml_out: (str | Path)):
     ----------
     path_ml_out: str | Path
         Output folder with all image-mask predictions. 3 masks per image must be generated as a prerequisite.
+    n_cores: int
     """
 
     path_ml_out = Path(path_ml_out)
 
     # get image path
     set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
-    n_cores = os.cpu_count()
+    # multiprocessing
+    if n_cores <= 0 or n_cores > os.cpu_count():
+        n_cores = os.cpu_count()
+    chunk_sets = list(list_to_chunks(set_img_tags, chunk_max_size=100))
+
+    # multiprocessing
     with Pool(n_cores) as pool:
-        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in list_to_chunks(set_img_tags, chunk_max_size=1000)])
+        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in chunk_sets])
     dict_unite = {}
     for result_dict in result_list:
         dict_unite.update(result_dict)
+        gc.collect()
+
     df_result = pd.DataFrame(dict_unite).T
     list_angle_lines = [calc_two_line_angle(row["circle_line__m"], row["sand_line__m"]) for _, row in df_result.iterrows()]
     df_result["angle_rel_sandXchamber_lines"] = list_angle_lines
@@ -333,6 +342,7 @@ def mp_data_generation(path_out: (str | Path),
         if visualize_pred:
             visualize_pred_img(dict_path_file_group["img"], dict_pred)
         dict_results_collect.update({unique_file: dict_pred})
+        gc.collect()
     return dict_results_collect
 
 

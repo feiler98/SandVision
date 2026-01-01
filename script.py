@@ -14,6 +14,7 @@ def analysis_img_seq(path_img_dir: (str | Path)):
     ----------
         path_img_dir: str | Path
     """
+
     # paths
     path_img_dir = Path(path_img_dir)
     path_models = Path(__file__).parent / "ml_model"
@@ -27,6 +28,7 @@ def analysis_img_seq(path_img_dir: (str | Path)):
         pred_by_model(path_img_dir, dict_model_file_path[tag], tag)
 
     mask_result_eval(path_img_dir)
+
 
 
 if __name__ == "__main__":
