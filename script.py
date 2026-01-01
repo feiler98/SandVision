@@ -16,7 +16,7 @@ def analysis_img_seq(path_img_dir: (str | Path)):
     """
     # paths
     path_img_dir = Path(path_img_dir)
-    """
+
     path_models = Path(__file__).parent / "ml_model"
     if not path_models.exists():
         raise ValueError(f"Model directory '{path_models}' does not exist!")
@@ -25,7 +25,7 @@ def analysis_img_seq(path_img_dir: (str | Path)):
     dict_model_file_path = {tag: list(path_models.glob(f"*{tag}.pth.tar"))[0] for tag in model_tags_list}
 
     for tag in model_tags_list:
-        pred_by_model(path_img_dir, dict_model_file_path[tag], tag)"""
+        pred_by_model(path_img_dir, dict_model_file_path[tag], tag)
 
     mask_result_eval(path_img_dir)
 
