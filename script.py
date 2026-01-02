@@ -32,5 +32,5 @@ def analysis_img_seq(path_img_dir: (str | Path)):
 
 
 if __name__ == "__main__":
-    analysis_img_seq("/run/media/wernerfeiler/Frei SSD/fullAnalysis_W3-6400-3200-nr25")
+    analysis_img_seq("/home/wernerfeiler/run_ml_sandvision/data_reduced")
 

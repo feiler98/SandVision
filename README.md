@@ -6,7 +6,7 @@ to the cartesian coordinate system by a UNET-inspired machine learning model.
 This allows the calculation of the sand-slide timepoint and the maximal tilt angle of the sand until instability.
 
 <br />
-<img src="./example_out/W3-6400-3200-nr25_1765102312400__pred_result.png" style="width: 100%;">
+<img src="./example_out/data_reduced/W3-6400-3200-nr25_1765102301200__pred_result.png" style="width: 100%;">
 
 <br />
 
@@ -80,6 +80,23 @@ Cumulative 3-fold cross validation with ~30,000 images generated from 79 origina
         <td>97.57±0.41 %</td>
     </tr>
 </table>
+
+<br />
+
+## Example Results | Sample 'W3-6400-3200-nr25'
+<br />
+<img src="./example_out/all_angles__W3_example.png" style="width: 100%;">
+
+<br />
+
+<img src="./example_out/sand_angle__W3_example.png" style="width: 100%;">
+
+<br />
+sand properties<br />
+---------------<br />
+    avg: 71.31±0.64 deg<br />
+    min: 67.38 deg<br />
+    max: 75.49 deg<br />
 
 <br />
 
