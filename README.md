@@ -92,8 +92,9 @@ Cumulative 3-fold cross validation with ~30,000 images generated from 79 origina
 <img src="./example_out/sand_angle__W3_example.png" style="width: 100%;">
 
 <br />
-**sand properties**<br />
-----------------------------------------<br />
+
+**sand properties** <br />
+-------------------------------<br />
     avg: 71.31±0.64 deg<br />
     min: 67.38 deg<br />
     max: 75.49 deg<br />
