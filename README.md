@@ -95,9 +95,13 @@ Cumulative 3-fold cross validation with ~30,000 images generated from 79 origina
 
 **sand properties** <br />
 -------------------------------<br />
-    avg: 71.31±2.79 deg<br />
-    min: 67.38 deg<br />
-    max: 75.49 deg<br />
+    avg-maxima: 71.31±2.79 deg<br />
+    min-maxima: 67.38 deg<br />
+    max-maxima: 75.49 deg<br />
+<br />
+    avg-minima: 50.06±4.51 deg<br />
+    min-minima: 45.18 deg<br />
+    max-minima: 59.23 deg<br />
 
 <br />
 

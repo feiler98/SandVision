@@ -194,6 +194,11 @@ def lin_reg_sand(arr: np.array) -> tuple:
         Point1 & point2 are returned for linear function calculation.
     """
 
+    row_signal_list = np.sum(arr,axis=0).tolist()
+    len_row = len(row_signal_list[row_signal_list >= 1])
+    col_signal_list = np.sum(arr,axis=1).tolist()
+    len_col = len(col_signal_list[col_signal_list >= 1])
+
     y, X = list(np.where(arr == 1))
     # too many points clustered decrease linear-reg performance --> thin out by creating steps
     list_idx = list(range(0, len(y), int(len(y)/20)))
@@ -202,7 +207,8 @@ def lin_reg_sand(arr: np.array) -> tuple:
 
     # swap axis to avoid extrema issue with non-continuity for vertical lines
     # --> sand surface tends to be in that state due to the clockwise rotation
-    y, X = X, y
+    if len_col < len_row:  # when the row wise summation is longer, the sand mass is mostly vertical --> suboptimal for lasso regression
+        y, X = X, y
     model_lin_reg = Lasso(alpha=0.1)
     model_lin_reg.fit(X.reshape(-1, 1), y.reshape(-1, 1))
     X_pred = np.array([X.min(), X.max()]).reshape(-1, 1)
@@ -210,8 +216,10 @@ def lin_reg_sand(arr: np.array) -> tuple:
 
     # plt.scatter(X, y)  # visualize for testing purposes
     # plt.show()
-
-    point1, point2 = [(float(y), float(x)) for x, y in zip(X_pred, y_pred)]
+    if len_col < len_row:  # correct prediction for image mapping by swapping
+        point1, point2 = [(float(y), float(x)) for x, y in zip(X_pred, y_pred)]
+    else:
+        point1, point2 = [(float(x), float(y)) for x, y in zip(X_pred, y_pred)]
     return point1, point2
 
 
