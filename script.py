@@ -23,10 +23,22 @@ def analysis_img_seq(path_img_dir: (str | Path)):
 
     model_tags_list = ["__mask_circle_chamber", "__mask_circle_dot", "__mask_sand"]
     dict_model_file_path = {tag: list(path_models.glob(f"*{tag}.pth.tar"))[0] for tag in model_tags_list}
-
+    print("""
+###################
+# Mask Prediction #
+###################
+""")
     for tag in model_tags_list:
+        print_text = f"Prediction of '{tag}'"
+        print(print_text)
+        print("-"*len(print_text))
         pred_by_model(path_img_dir, dict_model_file_path[tag], tag)
 
+    print("""
+###################
+# Data Evaluation #
+###################
+""")
     mask_result_eval(path_img_dir)
 
 

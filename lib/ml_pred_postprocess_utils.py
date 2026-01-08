@@ -13,6 +13,7 @@ from sklearn.linear_model import Lasso
 import os
 from multiprocessing import Pool
 import gc
+from tqdm import tqdm
 
 # from local lib
 from .data_vis_utils import visualize_pred_img
@@ -298,8 +299,8 @@ def mask_result_eval(path_ml_out: (str | Path), n_cores: int = 10, batch_size: i
         batch_size = len(set_img_tags)
     batch_chunk_list = list(list_to_chunks(set_img_tags, chunk_max_size=batch_size))
     df_concat_list = []
-
-    for batch_chunk in batch_chunk_list:
+    chunk_list_tqdm = tqdm(batch_chunk_list)
+    for batch_chunk in chunk_list_tqdm:
         # multiprocessing
         if n_cores <= 0 or n_cores > os.cpu_count():
             n_cores = os.cpu_count()
