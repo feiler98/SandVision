@@ -299,6 +299,8 @@ def mask_result_eval(path_ml_out: (str | Path), n_cores: int = 10, batch_size: i
         batch_size = len(set_img_tags)
     batch_chunk_list = list(list_to_chunks(set_img_tags, chunk_max_size=batch_size))
     df_concat_list = []
+
+    # tqdm for visualizing the batch multiprocessing pipeline
     chunk_list_tqdm = tqdm(batch_chunk_list)
     for batch_chunk in chunk_list_tqdm:
         # multiprocessing
