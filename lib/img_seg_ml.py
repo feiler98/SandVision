@@ -108,7 +108,7 @@ class VisTransformer(nn.Module):
         takes only every second item in ModuleList since:
         ConvTranspose2d
         DoubleConv --> target
-        --> they are laternating
+        --> they are alternating
         --> input x in DoubleConv with reverse order than DOWN for image upsizing
         """
         for idx in range(0, len(self.ups), 2):
@@ -128,7 +128,7 @@ class VisTransformer(nn.Module):
 # test VisTransformer
 # -------------------
 def __test_uneven_img_size():
-    x = torch.randn((3, 1, 161, 161))
+    x = torch.randn((1, 3, 161, 161))
     model = VisTransformer(in_channels=1, out_channels=1)
     preds = model(x)
     assert preds.shape == x.shape  # raises ValueError if condition not met.

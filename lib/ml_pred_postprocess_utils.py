@@ -275,7 +275,7 @@ def get_line_params_from_mask_pred(path_mask_chamber: (str | Path),
             "sand_line__t": float(t_sand)}
 
 
-def mask_result_eval(path_ml_out: (str | Path), n_cores: int = 10):
+def mask_result_eval(path_ml_out: (str | Path), n_cores: int = 10, batch_size: int = 500):
     """
     Multiprocessing function for extracting all image prediction images.
     Exports a csv file with all results.
@@ -285,34 +285,45 @@ def mask_result_eval(path_ml_out: (str | Path), n_cores: int = 10):
     path_ml_out: str | Path
         Output folder with all image-mask predictions. 3 masks per image must be generated as a prerequisite.
     n_cores: int
+    batch_size: int
     """
 
     path_ml_out = Path(path_ml_out)
 
     # get image path
     set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
-    # multiprocessing
-    if n_cores <= 0 or n_cores > os.cpu_count():
-        n_cores = os.cpu_count()
-    chunk_sets = list(list_to_chunks(set_img_tags, chunk_max_size=100))
 
-    # multiprocessing
-    with Pool(n_cores) as pool:
-        result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in chunk_sets])
-    dict_unite = {}
-    for result_dict in result_list:
-        dict_unite.update(result_dict)
-        gc.collect()
+    # correct batch size
+    if batch_size <= 0 or batch_size >= len(set_img_tags):
+        batch_size = len(set_img_tags)
+    batch_chunk_list = list(list_to_chunks(set_img_tags, chunk_max_size=batch_size))
+    df_concat_list = []
 
-    df_result = pd.DataFrame(dict_unite).T
-    list_angle_lines = [calc_two_line_angle(row["circle_line__m"], row["sand_line__m"]) for _, row in df_result.iterrows()]
-    df_result["angle_rel_sandXchamber_lines"] = list_angle_lines
-    list_angle_sand = [calculate_line_angle(row["sand_coords1"], row["sand_coords2"]) for _, row in df_result.iterrows()]
-    df_result["angle_h_abs_sand"] = list_angle_sand
-    list_angle_chamber = [calculate_line_angle(row["chamber_center_coords"], row["chamber_dot_coords"]) for _, row in df_result.iterrows()]
-    df_result["angle_h_abs_chamber"] = list_angle_chamber
+    for batch_chunk in batch_chunk_list:
+        # multiprocessing
+        if n_cores <= 0 or n_cores > os.cpu_count():
+            n_cores = os.cpu_count()
+        chunk_sets = list(list_to_chunks(batch_chunk, chunk_max_size=int(len(batch_chunk)/n_cores)+1))
 
-    df_result.to_excel(path_ml_out / f"{path_ml_out.name}__eval.xlsx")
+        # multiprocessing
+        with Pool(n_cores) as pool:
+            result_list = pool.starmap(mp_data_generation, [(path_ml_out, chunk_img_tags) for chunk_img_tags in chunk_sets])
+        dict_unite = {}
+        for result_dict in result_list:
+            dict_unite.update(result_dict)
+            gc.collect()
+
+        df_result = pd.DataFrame(dict_unite).T
+        list_angle_lines = [calc_two_line_angle(row["circle_line__m"], row["sand_line__m"]) for _, row in df_result.iterrows()]
+        df_result["angle_rel_sandXchamber_lines"] = list_angle_lines
+        list_angle_sand = [calculate_line_angle(row["sand_coords1"], row["sand_coords2"]) for _, row in df_result.iterrows()]
+        df_result["angle_h_abs_sand"] = list_angle_sand
+        list_angle_chamber = [calculate_line_angle(row["chamber_center_coords"], row["chamber_dot_coords"]) for _, row in df_result.iterrows()]
+        df_result["angle_h_abs_chamber"] = list_angle_chamber
+        df_concat_list.append(df_result)
+    # concat dataframe
+    df_result_concat = pd.concat(df_concat_list, axis=0)
+    df_result_concat.to_excel(path_ml_out / f"{path_ml_out.name}__eval.xlsx")
 
 
 # func for mask_result_eval multiprocessing element
