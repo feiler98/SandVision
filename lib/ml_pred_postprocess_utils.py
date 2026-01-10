@@ -202,9 +202,9 @@ def lin_reg_sand(arr: np.array) -> tuple:
         Point1 & point2 are returned for linear function calculation.
     """
 
-    row_signal_list = np.sum(arr,axis=0).tolist()
+    row_signal_list = np.sum(arr,axis=1).tolist()
     len_row = len([x for x in row_signal_list if x > 1.0])
-    col_signal_list = np.sum(arr,axis=1).tolist()
+    col_signal_list = np.sum(arr,axis=0).tolist()
     len_col = len([x for x in col_signal_list if x > 1.0])
 
     y, X = list(np.where(arr == 1))

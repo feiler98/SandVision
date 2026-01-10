@@ -49,5 +49,4 @@ def analysis_img_seq(path_img_dir: (str | Path)):
 
 
 if __name__ == "__main__":
-    # analysis_img_seq("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_29")
-    mask_result_eval("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_29")
+    analysis_img_seq("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_30")
