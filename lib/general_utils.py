@@ -9,6 +9,11 @@ import albumentations as A
 
 # local lib import
 from .img_seg_ml import SandDataLoader
+
+from warnings import filterwarnings
+filterwarnings("ignore", category=DeprecationWarning)
+filterwarnings("ignore", category=UserWarning)
+filterwarnings("ignore", category=RuntimeWarning)
 # ----------------------------------------------------------------------------------------------------------------------
 
 

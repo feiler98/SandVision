@@ -12,6 +12,11 @@ from pathlib import Path
 import albumentations as A
 import cv2
 from albumentations.pytorch import ToTensorV2
+
+from warnings import filterwarnings
+filterwarnings("ignore", category=DeprecationWarning)
+filterwarnings("ignore", category=UserWarning)
+filterwarnings("ignore", category=RuntimeWarning)
 # ----------------------------------------------------------------------------------------------------------------------
 
 

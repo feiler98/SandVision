@@ -8,6 +8,9 @@ from warnings import filterwarnings
 filterwarnings("ignore", category=DeprecationWarning)
 filterwarnings("ignore", category=UserWarning)
 filterwarnings("ignore", category=RuntimeWarning)
+
+import os
+os.environ['NO_ALBUMENTATIONS_UPDATE'] = '1'  # disables albuminations upgrade-warning
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -44,9 +47,11 @@ def analysis_img_seq(path_img_dir: (str | Path)):
 # Data Evaluation #
 ###################
 """)
-    mask_result_eval(path_img_dir)
+    mask_result_eval(path_img_dir, n_cores=10)
 
 
 
 if __name__ == "__main__":
-    analysis_img_seq("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_30")
+    #analysis_img_seq("/Volumes/Frei SSD/ID_img_seq_analysis/test_ID_29 copy")
+    mask_result_eval("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_29", n_cores=10)
+    mask_result_eval("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_30", n_cores=10)

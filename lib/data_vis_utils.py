@@ -19,7 +19,10 @@ def visualize_pred_img(path_img: (str | Path), dict_results: dict):
     """
 
     path_img = Path(path_img)
-    img_arr = np.asarray(Image.open(path_img))
+    g_img = Image.open(path_img)
+    rgb_img = Image.new("RGB", g_img.size)
+    rgb_img.paste(g_img)
+    img_arr = np.asarray(rgb_img)
     x_sand = [dict_results["sand_coords1"][0], dict_results["sand_coords2"][0]]
     y_sand = [dict_results["sand_coords1"][1], dict_results["sand_coords2"][1]]
     x_chamber = [dict_results["chamber_center_coords"][0], dict_results["chamber_dot_coords"][0]]

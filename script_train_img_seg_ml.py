@@ -17,6 +17,11 @@ from lib.general_utils import (load_checkpoint,
                                check_accuracy,
                                save_predictions_as_imgs,
                                ml_ready_data_cv)
+
+from warnings import filterwarnings
+filterwarnings("ignore", category=DeprecationWarning)
+filterwarnings("ignore", category=UserWarning)
+filterwarnings("ignore", category=RuntimeWarning)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
