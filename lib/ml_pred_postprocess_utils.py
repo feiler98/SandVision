@@ -12,6 +12,7 @@ import math
 from sklearn.linear_model import Lasso
 import os
 from multiprocessing import Pool
+from scipy.ndimage import gaussian_filter1d
 import gc
 from tqdm import tqdm
 
@@ -21,6 +22,8 @@ from .general_utils import list_to_chunks
 
 from warnings import filterwarnings
 filterwarnings("ignore", category=DeprecationWarning)
+filterwarnings("ignore", category=UserWarning)
+filterwarnings("ignore", category=RuntimeWarning)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -45,8 +48,8 @@ def find_mask_circle_center(path_mask: (str | Path)) -> dict:
     # 0 - 1 normalization
     array_mask = array_mask / array_mask.max()
     # signal list for width (row) and height (col)
-    row_signal_list = np.sum(array_mask,axis=0).tolist()
-    col_signal_list = np.sum(array_mask,axis=1).tolist()
+    row_signal_list = gaussian_filter1d(np.sum(array_mask,axis=0).tolist(), sigma=5).tolist()
+    col_signal_list = gaussian_filter1d(np.sum(array_mask,axis=1).tolist(), sigma=5).tolist()
     # calc coordinates of circle center
     max_row = max(row_signal_list)
     max_col = max(col_signal_list)
@@ -94,7 +97,8 @@ def create_circle(cartesian_shape: tuple,
 
 
 def calc_line_by_two_points(xy_point1: tuple,
-                            xy_point2: tuple) -> tuple:
+                            xy_point2: tuple,
+                            verbose: bool = False) -> tuple:
     """
     Transforms two points into a linear-function for angle calculation downstream.
 
@@ -104,6 +108,8 @@ def calc_line_by_two_points(xy_point1: tuple,
         (x-coordinate, y-coordinate)
     xy_point2: tuple
         (x-coordinate, y-coordinate)
+    verbose: bool
+        If 'True', shows print statements.
 
     Returns
     -------
@@ -115,7 +121,8 @@ def calc_line_by_two_points(xy_point1: tuple,
     x_coords, y_coords = zip(*[xy_point1, xy_point2])
     A = vstack([x_coords, ones(len(x_coords))]).T
     m, t = lstsq(A, y_coords)[0]
-    print(f"Linear equation | y = {m}x + {t}")
+    if verbose:
+        print(f"Linear equation | y = {m}x + {t}")
     return round(m, 2), round(t, 2)
 
 
@@ -196,9 +203,9 @@ def lin_reg_sand(arr: np.array) -> tuple:
     """
 
     row_signal_list = np.sum(arr,axis=0).tolist()
-    len_row = len(row_signal_list[row_signal_list >= 1])
+    len_row = len([x for x in row_signal_list if x > 1.0])
     col_signal_list = np.sum(arr,axis=1).tolist()
-    len_col = len(col_signal_list[col_signal_list >= 1])
+    len_col = len([x for x in col_signal_list if x > 1.0])
 
     y, X = list(np.where(arr == 1))
     # too many points clustered decrease linear-reg performance --> thin out by creating steps
@@ -292,8 +299,7 @@ def mask_result_eval(path_ml_out: (str | Path), n_cores: int = 10, batch_size: i
     path_ml_out = Path(path_ml_out)
 
     # get image path
-    set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("*.png")]))
-
+    set_img_tags = list(set([p.stem.split("__")[0] for p in path_ml_out.rglob("img_*.png")]))
     # correct batch size
     if batch_size <= 0 or batch_size >= len(set_img_tags):
         batch_size = len(set_img_tags)
@@ -353,14 +359,10 @@ def mp_data_generation(path_out: (str | Path),
     mask_tags = ["mask_circle_chamber", "mask_circle_dot", "mask_sand", "img"]
     dict_results_collect = {}
     for unique_file in list_img_tags:
-        dict_path_file_group = {(p.stem.split("__")[1] if len(p.stem.split("__")) > 1 else "img"): p for p in path_out.rglob(f"*{unique_file}*{file_type}")}
+        dict_path_file_group = {(p.stem.split("__")[1] if len(p.stem.split("__")) > 1 else "img"): p for p in path_out.glob(f"{unique_file}*{file_type}")}
         if not mask_tags.sort() == list(dict_path_file_group.keys()).sort():
             print(f"Image sequence '{unique_file}' does not have all necessary image-elements. --> skip")
             continue
-        header_string = f"Evaluation of '{unique_file}'"
-        print(f"""
-{header_string}""")
-        print("-"*len(header_string))
         dict_pred = get_line_params_from_mask_pred(dict_path_file_group["mask_circle_chamber"],
                                                    dict_path_file_group["mask_circle_dot"],
                                                    dict_path_file_group["mask_sand"])

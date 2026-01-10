@@ -3,6 +3,11 @@
 from lib.img_seg_ml import pred_by_model
 from lib.ml_pred_postprocess_utils import mask_result_eval
 from pathlib import Path
+
+from warnings import filterwarnings
+filterwarnings("ignore", category=DeprecationWarning)
+filterwarnings("ignore", category=UserWarning)
+filterwarnings("ignore", category=RuntimeWarning)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -44,5 +49,5 @@ def analysis_img_seq(path_img_dir: (str | Path)):
 
 
 if __name__ == "__main__":
-    analysis_img_seq("/home/wernerfeiler/run_ml_sandvision/data_reduced")
-
+    # analysis_img_seq("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_29")
+    mask_result_eval("/Volumes/Frei SSD/ID_img_seq_analysis/analysis_ID_29")

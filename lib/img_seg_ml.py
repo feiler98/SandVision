@@ -184,8 +184,8 @@ def pred_by_model(img_dir: (str, Path),
     model_path = Path(model_path)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = VisTransformer(in_channels=3, out_channels=1).to(device)
-    model.load_state_dict(torch.load(model_path)["state_dict"])
-    list_img_tags = list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"*{data_suffix}")]))
+    model.load_state_dict(torch.load(model_path, map_location=torch.device(device))["state_dict"])
+    list_img_tags = list(set([p.stem.split("__")[0] for p in Path(img_dir).rglob(f"img_*{data_suffix}")]))
     img_path_dict = {tag: img_dir/f"{tag}{data_suffix}" for tag in list_img_tags}
     pred_transform = A.Compose(
         [

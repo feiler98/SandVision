@@ -149,6 +149,8 @@ def video_to_image_seq(video_path: (str, Path),
 
 # testing
 if __name__ == "__main__":
-    pass
+    path_data = Path("/Volumes/Frei SSD/")
+    rename_files_date_to_timestamp(path_data/"ID_29", path_data/"ID_img_seq_analysis"/"analysis_ID_29")
+    rename_files_date_to_timestamp(path_data / "ID_30", path_data / "ID_img_seq_analysis" / "analysis_ID_30")
 
 
