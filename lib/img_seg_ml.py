@@ -14,6 +14,9 @@ import cv2
 from albumentations.pytorch import ToTensorV2
 
 from warnings import filterwarnings
+
+from lib.ml_img_preprocess_utils import pillow_img_transform
+
 filterwarnings("ignore", category=DeprecationWarning)
 filterwarnings("ignore", category=UserWarning)
 filterwarnings("ignore", category=RuntimeWarning)
@@ -206,7 +209,10 @@ def pred_by_model(img_dir: (str, Path),
 
     for tag, p in img_path_dict.items():
         print(f"Predicting '{mask_tag}' for image '{tag}'")
-        img_arr = np.array(Image.open(p).convert("RGB"))
+        p_img = Image.open(p)
+        rgb_p_img = Image.new("RGB", p_img.size)
+        rgb_p_img.paste(p_img)
+        img_arr = np.array(rgb_p_img)
         y, x, _ = img_arr.shape
         augmentations = pred_transform(image=img_arr)
         img = augmentations["image"]
