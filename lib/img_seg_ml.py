@@ -209,6 +209,7 @@ def pred_by_model(img_dir: (str, Path),
 
     for tag, p in img_path_dict.items():
         print(f"Predicting '{mask_tag}' for image '{tag}'")
+        # prevent pure grey scale images fucking up the analysis
         p_img = Image.open(p)
         rgb_p_img = Image.new("RGB", p_img.size)
         rgb_p_img.paste(p_img)
